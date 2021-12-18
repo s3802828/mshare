@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">MShare</string>
+    <string name="already_has_account_sign_in">Already has account? Sign in here</string>
+    <string name="signup">SIGN UP</string>
+    <string name="password">Enter your Password</string>
+    <string name="username">Enter your Email</string>
+    <string name="name">Enter your Name</string>
+    <string name="password_confirm">Confirm Password</string>
+    <string name="login">LOGIN</string>
+    <string name="create_new_account">Create new account</string>
+    <string name="logout">Logout</string>
+    <string name="facebook_app_id">1299644847186479</string>
+    <string name="fb_login_protocol_scheme">fb1299644847186479</string>
+    <string name="continue_with_google">Continue with Google</string>
 </resources>

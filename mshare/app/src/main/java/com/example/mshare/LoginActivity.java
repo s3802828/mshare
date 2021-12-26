@@ -26,6 +26,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -35,6 +37,10 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Objects;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -43,6 +49,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText emailInput, passwordInput;
     CallbackManager mCallbackManager;
     GoogleSignInClient mGoogleSignInClient;
+    protected FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -107,6 +114,8 @@ public class LoginActivity extends AppCompatActivity {
         TextView signInButtonText = (TextView) signInButton.getChildAt(0);
         signInButtonText.setText("Continue with Google");
         signInButton.setOnClickListener(v -> signInWithGoogle());
+        FirebaseUser currentUser = mFirebaseAuth.getCurrentUser();
+        if(currentUser != null) goToMain();
 
     }
 
@@ -147,7 +156,12 @@ public class LoginActivity extends AppCompatActivity {
                     assert user != null;
                     invalidEmail.setVisibility(View.GONE);
                     invalidPassword.setVisibility(View.GONE);
-                    goToMain();
+                    if(!user.isEmailVerified()){
+                        invalidEmail.setText("This email has not been verified");
+                        invalidEmail.setVisibility(View.VISIBLE);
+                    } else {
+                        goToMain();
+                    }
                 })
                 .addOnFailureListener(this, e -> {
                     if(e instanceof FirebaseAuthInvalidUserException){
@@ -160,10 +174,39 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
     private void goToMain(){
-        Intent intent = new Intent(LoginActivity.this, ChatActivity.class);
+        Intent intent = new Intent(LoginActivity.this, UserListActivity.class);
         emailInput.setText("");
         passwordInput.setText("");
-        startActivityForResult(intent, 200);
+        FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        assert user != null;
+        db.collection("users").document(user.getUid()).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(task.getResult().getString("name") == null){
+                            User newUser = new User(user.getDisplayName(), user.getEmail(), user.getPhotoUrl().toString());
+                            if(user.getProviderData().get(1).getProviderId().equals("google.com")){
+                                newUser.setEmail(user.getProviderData().get(1).getEmail());
+                            } else if (user.getProviderData().get(1).getProviderId().equals("facebook.com")){
+                                String accessToken = Objects.requireNonNull(AccessToken.getCurrentAccessToken()).getToken();
+                                newUser.setEmail(user.getProviderData().get(1).getEmail());
+                                newUser.setAvatar(user.getPhotoUrl().toString() + "?access_token=" + accessToken);
+                            }
+                            db.collection("users").document(user.getUid()).set(newUser)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(@NonNull Void unused) {
+                                            startActivityForResult(intent, 200);
+                                        }
+                                    });
+                        } else startActivityForResult(intent, 200);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
@@ -187,11 +230,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 100){
-            if(resultCode == 100){
-                goToMain();
-            }
-        }
         if(requestCode == 200){
             if(resultCode == 200){
                 mGoogleSignInClient.signOut();

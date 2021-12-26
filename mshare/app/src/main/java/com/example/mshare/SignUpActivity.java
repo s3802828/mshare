@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -110,7 +111,12 @@ public class SignUpActivity extends AppCompatActivity {
                     FirebaseUser user = mFirebaseAuth.getCurrentUser();
                     assert user != null;
                     user.updateProfile(profileUpdates)
-                            .addOnSuccessListener(unused -> goToLogin(100))
+                            .addOnSuccessListener(unused -> {
+                                user.sendEmailVerification();
+                                Toast.makeText(SignUpActivity.this, "" +
+                                        "Email Verification has been sent to you. Please verify to continue!", Toast.LENGTH_SHORT).show();
+                                goToLogin(50);
+                            })
                             .addOnFailureListener(Throwable::printStackTrace);
                 })
                 .addOnFailureListener(e -> {

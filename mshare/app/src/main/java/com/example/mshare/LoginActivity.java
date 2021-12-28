@@ -39,6 +39,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Objects;
 
@@ -182,24 +183,40 @@ public class LoginActivity extends AppCompatActivity {
         db.collection("users").document(user.getUid()).get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if(task.getResult().getString("name") == null){
-                            User newUser = new User(user.getDisplayName(), user.getEmail(), user.getPhotoUrl().toString());
-                            if(user.getProviderData().get(1).getProviderId().equals("google.com")){
-                                newUser.setEmail(user.getProviderData().get(1).getEmail());
-                            } else if (user.getProviderData().get(1).getProviderId().equals("facebook.com")){
-                                String accessToken = Objects.requireNonNull(AccessToken.getCurrentAccessToken()).getToken();
-                                newUser.setEmail(user.getProviderData().get(1).getEmail());
-                                newUser.setAvatar(user.getPhotoUrl().toString() + "?access_token=" + accessToken);
+                    public void onComplete(@NonNull Task<DocumentSnapshot> userTask) {
+                        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                            @Override
+                            public void onComplete(@NonNull Task<String> task) {
+                                String token = task.getResult();
+                                if(userTask.getResult().getString("name") == null){
+                                    User newUser = new User(user.getDisplayName(), user.getEmail(), user.getPhotoUrl().toString());
+                                    newUser.setToken(token);
+                                    if(user.getProviderData().get(1).getProviderId().equals("google.com")){
+                                        newUser.setEmail(user.getProviderData().get(1).getEmail());
+                                    } else if (user.getProviderData().get(1).getProviderId().equals("facebook.com")){
+                                        String accessToken = Objects.requireNonNull(AccessToken.getCurrentAccessToken()).getToken();
+                                        newUser.setEmail(user.getProviderData().get(1).getEmail());
+                                        newUser.setAvatar(user.getPhotoUrl().toString() + "?access_token=" + accessToken);
+                                    }
+                                    db.collection("users").document(user.getUid()).set(newUser)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(@NonNull Void unused) {
+                                                    startActivityForResult(intent, 200);
+                                                }
+                                            });
+                                } else {
+                                    db.collection("users").document(user.getUid()).update("token", token)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(@NonNull Void unused) {
+                                                    startActivityForResult(intent, 200);
+                                                }
+                                            });
+                                }
+
                             }
-                            db.collection("users").document(user.getUid()).set(newUser)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(@NonNull Void unused) {
-                                            startActivityForResult(intent, 200);
-                                        }
-                                    });
-                        } else startActivityForResult(intent, 200);
+                        });
                     }
                 }).addOnFailureListener(new OnFailureListener() {
             @Override

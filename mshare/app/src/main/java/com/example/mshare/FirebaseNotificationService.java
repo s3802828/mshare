@@ -24,6 +24,12 @@ import com.google.firebase.messaging.RemoteMessage;
 
 public class FirebaseNotificationService extends FirebaseMessagingService {
     private NotificationManager notificationManager;
+
+    @Override
+    public void onNewToken(@NonNull String s) {
+        super.onNewToken(s);
+    }
+
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -72,7 +78,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         "request_notification")
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
                         .setContentTitle("NEW REQUEST")
-                        .setContentText(senderName + "has sent you request")
+                        .setContentText(senderName + " has sent you request")
 //                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lead_site))
 //                        .setStyle(new NotificationCompat.BigTextStyle().bigText(lCursor.getString(2)))
 //                        .setPriority(NotificationCompat.PRIORITY_HIGH)

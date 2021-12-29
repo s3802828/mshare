@@ -15,9 +15,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -25,23 +27,32 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class UserListActivity extends AppCompatActivity {
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final ArrayList<String> userNames = new ArrayList<>();
+    private final ArrayList<String> userIds = new ArrayList<>();
     private final ArrayList<String> avatars = new ArrayList<>();
+    private APIService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
+        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         assert firebaseUser != null;
         db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -51,12 +62,49 @@ public class UserListActivity extends AppCompatActivity {
                     if(!ds.getId().equals(firebaseUser.getUid())){
                         userNames.add(ds.getString("name"));
                         avatars.add(ds.getString("avatar"));
+                        userIds.add(ds.getId());
                     }
                 }
                 ListView userList = findViewById(R.id.user_listView);
                 UserListAdapter userListAdapter = new UserListAdapter(UserListActivity.this, userNames);
                 userListAdapter.notifyDataSetChanged();
                 userList.setAdapter(userListAdapter);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
+    }
+    private void sendRequestNotification(String receiverId){
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+        db.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                String token = task.getResult().getString("token");
+                assert currentUser != null;
+                Data data = new Data(currentUser.getUid(), null, null, null, receiverId);
+                Sender sender = new Sender(data, token);
+                apiService.sendNotification(sender)
+                        .enqueue(new Callback<NotificationResponse>() {
+                            @Override
+                            public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                                if(response.code() == 200){
+                                    assert response.body() != null;
+                                    if(response.body().getSuccess() != 1){
+                                        Toast.makeText(UserListActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<NotificationResponse> call, Throwable t) {
+
+                            }
+                        });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -106,6 +154,14 @@ public class UserListActivity extends AppCompatActivity {
             TextView nameView = rowLayout.findViewById(R.id.userName);
             new SetImageFromUri().execute(avatarView);
             nameView.setText(userNames.get(position));
+
+            Button sendRequestButton = rowLayout.findViewById(R.id.send_request_btn);
+            sendRequestButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sendRequestNotification(userIds.get(position));
+                }
+            });
             return rowLayout;
         }
     }

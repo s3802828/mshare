@@ -14,5 +14,6 @@
         android:id="@+id/user_listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/search_user"/>
+        android:layout_below="@+id/search_user"
+        android:focusable="true"/>
 </RelativeLayout>

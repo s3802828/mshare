@@ -3,12 +3,16 @@ package com.example.mshare;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
+import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -22,8 +26,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Timer;
+
+import javax.crypto.CipherOutputStream;
+
 public class FirebaseNotificationService extends FirebaseMessagingService {
     private NotificationManager notificationManager;
+    public static CountDownTimer timer;
 
     @Override
     public void onNewToken(@NonNull String s) {
@@ -33,6 +42,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+        System.out.println("Hello");
         String receiverId = remoteMessage.getData().get("receiverId");
         FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
         if(currUser != null) {
@@ -52,22 +62,22 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
 
     private void sendNotification(RemoteMessage remoteMessage) {
         if(notificationManager == null) createNotificationChannels();
-//                Intent intent = new Intent(this, MapsActivity.class);
-//                intent.setAction(Intent.ACTION_MAIN); //When user click on notification, the map won't start again
-//                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                //Put more info to intent to launch action after user click on notification
-//                intent.putExtra("from_notification", true);
-//                intent.putExtra("to_volunteers", false);
-//                intent.putExtra("notification_id", lCursor.getInt(0));
-//                intent.putExtra("receiver_id", lCursor.getInt(1));
-//                intent.putExtra("site_id", Integer.parseInt(lCursor.getString(2)
-//                        .substring(lCursor.getString(2).lastIndexOf("(NO.") + 4,
-//                                lCursor.getString(2).length() - 1)));
-//                //For user to click on notification
-//                PendingIntent pendingIntent = PendingIntent.getActivity(this, lCursor.getInt(0), intent, PendingIntent.FLAG_IMMUTABLE);
-                //Show all leader notifications to current user
         String senderId = remoteMessage.getData().get("senderId");
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Intent noResponseIntent = new Intent(this, RequestNotificationReceiver.class);
+
+        Intent acceptIntent = new Intent(this, RequestNotificationReceiver.class);
+        acceptIntent.putExtra("accept", true);
+        PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(this, 100, acceptIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent declineIntent = new Intent(this, RequestNotificationReceiver.class);
+        declineIntent.putExtra("accept", false);
+        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(this, 200, declineIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(null,"ACCEPT", pendingAcceptIntent)
+                .build();
+        NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(null,"DECLINE", pendingDeclineIntent)
+                .build();
 
         assert senderId != null;
         db.collection("users").document(senderId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -79,6 +89,10 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
                         .setContentTitle("NEW REQUEST")
                         .setContentText(senderName + " has sent you request")
+                        .addAction(acceptAction)
+                        .addAction(declineAction)
+                        .setAutoCancel(true)
+//                        .setDeleteIntent(pendingNoResponseIntent)
 //                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lead_site))
 //                        .setStyle(new NotificationCompat.BigTextStyle().bigText(lCursor.getString(2)))
 //                        .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -87,6 +101,16 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
 //                        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .build();
                 notificationManager.notify(0, notification);
+                timer = new CountDownTimer(10000, 1000){
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+                    @Override
+                    public void onFinish() {
+                        notificationManager.cancel(0);
+                        sendBroadcast(noResponseIntent);
+                    }
+                }.start();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -94,6 +118,5 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                 e.printStackTrace();
             }
         });
-
-            }
+    }
 }

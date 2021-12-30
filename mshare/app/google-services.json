@@ -31,6 +31,14 @@
           }
         },
         {
+          "client_id": "441502944178-hprf7loj90rjqtadlnsvqjhsp6kldchu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mshare",
+            "certificate_hash": "1da5a21e20ad5d7d2ca02809cb8586ac33e371fa"
+          }
+        },
+        {
           "client_id": "441502944178-nqr41rlfbhqph8cpbdbmmk2laspljc1i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

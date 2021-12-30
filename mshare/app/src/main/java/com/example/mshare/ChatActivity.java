@@ -1,43 +1,30 @@
 package com.example.mshare;
 
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
-import com.example.mshare.adapter.MessageAdapter;
+import com.example.mshare.adapters.MessageAdapter;
 import com.example.mshare.databinding.ActivityChatBinding;
-import com.example.mshare.model.Message;
-import com.example.mshare.model.User;
+import com.example.mshare.models.Message;
+import com.example.mshare.models.User;
 import com.facebook.login.LoginManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.model.Document;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -48,7 +35,6 @@ import java.util.Locale;
 public class ChatActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private FirebaseFirestore database;
-    //    FirebaseUser user = firebaseAuth.getCurrentUser();
     private ActivityChatBinding activityChatBinding;
     private User receiver;
     private List<Message> messageList;
@@ -66,8 +52,6 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(activityChatBinding.getRoot());
         initialize();
         realTimeListenChat();
-        Toast.makeText(    ChatActivity
-                .this, "" + user.getDisplayName(), Toast.LENGTH_SHORT).show();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
 
@@ -77,11 +61,6 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding.chatAllMessagesRecyclerView.setAdapter(messageAdapter);
         database = FirebaseFirestore.getInstance();
         receiver = (User) getIntent().getSerializableExtra("User");
-//        if (firebaseAuth.getUid().equals("xK7FRsEspEbgWty8t0BVhwVAv1j1")) {
-//            receiver.id = "37Lxmhq87ZXg8RXR9XTYNG3hi1l1";
-//        } else {
-//            receiver.id = "xK7FRsEspEbgWty8t0BVhwVAv1j1";
-//        }
         backButton = findViewById(R.id.backBtn);
 //        backButton.setOnClickListener(v -> onBackPressed());
     }
@@ -93,13 +72,13 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage() {
         DocumentReference documentReference =  database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.id));
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()));
         String content = activityChatBinding.messageContent.getText().toString();
         //Check empty space message
         if(!content.trim().isEmpty()) {
             HashMap<String, Object> message = new HashMap<>();
             message.put("senderId", firebaseAuth.getUid());
-            message.put("receiverId", receiver.id);
+            message.put("receiverId", receiver.getId());
             message.put("content", content);
             message.put("timestamp", new Date());
 
@@ -111,8 +90,8 @@ public class ChatActivity extends AppCompatActivity {
             HashMap<String, Object> lastMessage = new HashMap<>();
             lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
             lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
-            lastMessage.put("lastMessage_receiverId", receiver.id);
-            lastMessage.put("lastMessage_receiverName", receiver.name);
+            lastMessage.put("lastMessage_receiverId", receiver.getId());
+            lastMessage.put("lastMessage_receiverName", receiver.getName());
             lastMessage.put("lastMessage", content);
             lastMessage.put("timestamp", new Date());
             documentReference.set(lastMessage);
@@ -121,15 +100,15 @@ public class ChatActivity extends AppCompatActivity {
 
     private void realTimeListenChat() {
         database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.id))
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
                 .collection("messages")
                 .whereEqualTo("senderId", firebaseAuth.getUid())
-                .whereEqualTo("receiverId", receiver.id)
+                .whereEqualTo("receiverId", receiver.getId())
                 .addSnapshotListener(eventListener);
         database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.id))
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
                 .collection("messages")
-                .whereEqualTo("senderId", receiver.id)
+                .whereEqualTo("senderId", receiver.getId())
                 .whereEqualTo("receiverId", firebaseAuth.getUid())
                 .addSnapshotListener(eventListener);
     }

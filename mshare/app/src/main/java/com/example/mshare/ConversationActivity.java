@@ -3,18 +3,18 @@ package com.example.mshare;
 import static com.example.mshare.ChatActivity.convertDateFormat;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
-import com.example.mshare.adapter.ConversationAdapter;
+
+import com.example.mshare.adapters.ConversationAdapter;
 import com.example.mshare.databinding.ActivityConversationBinding;
-import com.example.mshare.listener.ConversationListener;
-import com.example.mshare.model.Message;
-import com.example.mshare.model.User;
+
+import com.example.mshare.interfaces.ConversationListener;
+import com.example.mshare.models.Message;
+import com.example.mshare.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
@@ -32,7 +32,6 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
     private List<Message> conversationList;
     private ConversationAdapter conversationAdapter;
     private FirebaseFirestore database;
-    private Button button;
 
 
     @Override
@@ -49,14 +48,6 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
         conversationAdapter = new ConversationAdapter(conversationList, this);
         activityConversationBinding.conversationRecyclerView.setAdapter(conversationAdapter);
         database = FirebaseFirestore.getInstance();
-        button = findViewById(R.id.gotoChat);
-        button.setOnClickListener(v -> {
-            Intent intent = new Intent(ConversationActivity.this, ChatActivity.class);
-            User user = new User();
-            user.id = "tJYHI20FLMRhHG2IdYQDvM3stRI3";
-            intent.putExtra("User", user);
-            startActivity(intent);
-        });
     }
 
     private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
@@ -71,7 +62,7 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                         String senderId = documentChange.getDocument().getString("lastMessage_senderId");
                         String receiverId = documentChange.getDocument().getString("lastMessage_receiverId");
                         if (conversationList.get(i).senderId.equals(receiverId) &&
-                            conversationList.get(i).receiverId.equals(senderId)) {
+                                conversationList.get(i).receiverId.equals(senderId)) {
                             conversationList.remove(i);
                             break;
                         }

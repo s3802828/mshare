@@ -13,11 +13,10 @@
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:layout_marginTop="6dp"
-        android:src="@drawable/ic_user_avatar"
         android:tint="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    
+
     <View
         android:id="@+id/viewSupporter"
         android:layout_width="1dp"

@@ -13,7 +13,6 @@
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:layout_marginTop="6dp"
-        android:src="@drawable/ic_user_avatar"
         android:tint="@color/com_facebook_button_background_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

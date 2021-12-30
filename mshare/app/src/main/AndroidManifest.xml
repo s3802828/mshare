@@ -12,15 +12,32 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MShare">
         <activity
-            android:name=".MediaActivity"
+            android:name=".SongListActivity"
             android:exported="false" />
         <activity
             android:name=".ConversationActivity"
             android:exported="false" />
         <activity
             android:name=".ChatActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:exported="false" />
+
+        <receiver
+            android:name=".broadcastReceivers.RequestNotificationReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+        <service
+            android:name=".services.FirebaseNotificationService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".UserListActivity"
+            android:exported="false" />
         <activity
             android:name=".LoginActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
@@ -34,14 +51,6 @@
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />
-
-        <service
-            android:name=".MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

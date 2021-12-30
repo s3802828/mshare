@@ -56,7 +56,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationChannel channel1 = new NotificationChannel("request_notification",
                 "Request Notification", NotificationManager.IMPORTANCE_HIGH);
-        channel1.setDescription("This is Site Change Channel");
+        channel1.setDescription("This is Request Notification Channel");
         notificationManager.createNotificationChannel(channel1);
     }
 
@@ -91,14 +91,6 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         .setContentText(senderName + " has sent you request")
                         .addAction(acceptAction)
                         .addAction(declineAction)
-                        .setAutoCancel(true)
-//                        .setDeleteIntent(pendingNoResponseIntent)
-//                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lead_site))
-//                        .setStyle(new NotificationCompat.BigTextStyle().bigText(lCursor.getString(2)))
-//                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-//                        .setContentIntent(pendingIntent)
-//                        .setAutoCancel(true)
-//                        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .build();
                 notificationManager.notify(0, notification);
                 timer = new CountDownTimer(10000, 1000){

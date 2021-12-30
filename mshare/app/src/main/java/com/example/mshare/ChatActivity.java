@@ -66,8 +66,8 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(activityChatBinding.getRoot());
         initialize();
         realTimeListenChat();
-//        Toast.makeText(    ChatActivity
-//                .this, "" + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(    ChatActivity
+                .this, "" + user.getDisplayName(), Toast.LENGTH_SHORT).show();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
 

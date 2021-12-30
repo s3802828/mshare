@@ -83,7 +83,7 @@ public class ChatActivity extends AppCompatActivity {
 //            receiver.id = "xK7FRsEspEbgWty8t0BVhwVAv1j1";
 //        }
         backButton = findViewById(R.id.backBtn);
-        backButton.setOnClickListener(v -> onBackPressed());
+//        backButton.setOnClickListener(v -> onBackPressed());
     }
 
     public static String convertDateFormat(Date date) {

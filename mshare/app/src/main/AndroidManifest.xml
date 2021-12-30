@@ -12,9 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MShare">
         <activity
-            android:name=".ChatActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:name=".MediaActivity"
             android:exported="false" />
+        <activity
+            android:name=".ConversationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".LoginActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
@@ -28,6 +34,14 @@
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />
+
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

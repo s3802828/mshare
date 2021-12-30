@@ -63,7 +63,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     class MessageSentViewHolder extends RecyclerView.ViewHolder {
-        private final MessageSentContainerBinding messageSentContainerBinding;
+        private MessageSentContainerBinding messageSentContainerBinding;
 
         MessageSentViewHolder(MessageSentContainerBinding messageSentContainerBinding) {
             super(messageSentContainerBinding.getRoot());
@@ -72,7 +72,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         void setMessageData(Message message) {
             messageSentContainerBinding.messageText.setText(message.getContent());
-            messageSentContainerBinding.messageTimestamp.setText(message.getTimestamp());
+            messageSentContainerBinding.messageTimestamp.setText(message.getDate());
 
         }
     }
@@ -87,7 +87,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         void setMessageData(Message message) {
             messageReceiveContainerBinding.messageText.setText(message.getContent());
-            messageReceiveContainerBinding.messageTimestamp.setText(message.getTimestamp());
+            messageReceiveContainerBinding.messageTimestamp.setText(message.getDate());
 
         }
     }

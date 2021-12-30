@@ -16,9 +16,14 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
 
 public class SignUpActivity extends AppCompatActivity {
     protected FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+    protected FirebaseFirestore database = FirebaseFirestore.getInstance();
+
     TextView invalidEmail, toLogin;
     Button signUpButton;
 
@@ -112,6 +117,15 @@ public class SignUpActivity extends AppCompatActivity {
                     user.updateProfile(profileUpdates)
                             .addOnSuccessListener(unused -> goToLogin(100))
                             .addOnFailureListener(Throwable::printStackTrace);
+
+                    //Add user information to Firestore
+                    HashMap<String,Object> hashMap = new HashMap<>();
+                    hashMap.put("email", email);
+                    hashMap.put("id", user.getUid());
+                    hashMap.put("name",name);
+                    hashMap.put("avatar",user.getPhotoUrl());
+                    hashMap.put("Availability","online");
+                    database.collection("users").document(user.getUid()).set(hashMap);
                 })
                 .addOnFailureListener(e -> {
                     e.printStackTrace();

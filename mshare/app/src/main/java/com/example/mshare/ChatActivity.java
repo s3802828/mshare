@@ -2,6 +2,7 @@ package com.example.mshare;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.mshare.adapter.MessageAdapter;
@@ -25,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -50,6 +53,8 @@ public class ChatActivity extends AppCompatActivity {
     private User receiver;
     private List<Message> messageList;
     private MessageAdapter messageAdapter;
+    private AppCompatImageView backButton;
+
     //    private PreferenceManager preferenceManager;
 //    private String senderId;
     private final String TAG = "ChatActivity";
@@ -67,42 +72,50 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void initialize() {
-//        preferenceManager = new PreferenceManager(getApplicationContext());
         messageList = new ArrayList<Message>();
         messageAdapter = new MessageAdapter(messageList, firebaseAuth.getUid());
         activityChatBinding.chatAllMessagesRecyclerView.setAdapter(messageAdapter);
         database = FirebaseFirestore.getInstance();
-        receiver = new User();
-        if (firebaseAuth.getUid().equals("xK7FRsEspEbgWty8t0BVhwVAv1j1")) {
-            receiver.id = "37Lxmhq87ZXg8RXR9XTYNG3hi1l1";
-        } else {
-            receiver.id = "xK7FRsEspEbgWty8t0BVhwVAv1j1";
-        }
+        receiver = (User) getIntent().getSerializableExtra("User");
+//        if (firebaseAuth.getUid().equals("xK7FRsEspEbgWty8t0BVhwVAv1j1")) {
+//            receiver.id = "37Lxmhq87ZXg8RXR9XTYNG3hi1l1";
+//        } else {
+//            receiver.id = "xK7FRsEspEbgWty8t0BVhwVAv1j1";
+//        }
+        backButton = findViewById(R.id.backBtn);
+        backButton.setOnClickListener(v -> onBackPressed());
     }
 
-    private String convertDateFormat(Date date) {
+    public static String convertDateFormat(Date date) {
         return new SimpleDateFormat("MMMM dd, yyyy - hh:mm a", Locale.getDefault()).format(date);
     }
 
-    private String generateConversationId(String a, String b) {
-        if (a.compareTo(b) < 0) {
-            return b + a;
-        }
-        return a + b;
-    }
 
     private void sendMessage() {
+        DocumentReference documentReference =  database.collection("conversation")
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.id));
         String content = activityChatBinding.messageContent.getText().toString();
+        //Check empty space message
         if(!content.trim().isEmpty()) {
             HashMap<String, Object> message = new HashMap<>();
             message.put("senderId", firebaseAuth.getUid());
             message.put("receiverId", receiver.id);
             message.put("content", content);
             message.put("timestamp", new Date());
-            database.collection("conversation")
-                    .document(generateConversationId(firebaseAuth.getUid(), receiver.id))
-                    .collection("messages").add(message);
+
+            //add message to Firestore
+            documentReference.collection("messages").add(message);
             activityChatBinding.messageContent.setText(null);
+
+            //update the last message fields in Conversation Collection
+            HashMap<String, Object> lastMessage = new HashMap<>();
+            lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
+            lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
+            lastMessage.put("lastMessage_receiverId", receiver.id);
+            lastMessage.put("lastMessage_receiverName", receiver.name);
+            lastMessage.put("lastMessage", content);
+            lastMessage.put("timestamp", new Date());
+            documentReference.set(lastMessage);
         }
     }
 
@@ -141,6 +154,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
             Collections.sort(messageList, Comparator.comparing(a -> a.date));
+
             if (count == 0) {
                 messageAdapter.notifyDataSetChanged();
             } else {
@@ -170,4 +184,13 @@ public class ChatActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+    private String generateConversationId(String a, String b) {
+        if (a.compareTo(b) < 0) {
+            return b + a;
+        }
+        return a + b;
+    }
+
 }

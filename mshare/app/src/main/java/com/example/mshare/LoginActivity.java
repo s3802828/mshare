@@ -160,7 +160,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
     private void goToMain(){
-        Intent intent = new Intent(LoginActivity.this, ChatActivity.class);
+        Intent intent = new Intent(LoginActivity.this, ConversationActivity.class);
         emailInput.setText("");
         passwordInput.setText("");
         startActivityForResult(intent, 200);

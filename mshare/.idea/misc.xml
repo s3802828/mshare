@@ -7,6 +7,7 @@
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/chat_content_bg.xml" value="0.3880208333333333" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/chat_input_bg.xml" value="0.22135416666666666" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/chat_message_bg.xml" value="0.3880208333333333" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/conversation_container.xml" value="0.21203703703703702" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/ic_goback.xml" value="0.22135416666666666" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/ic_launcher_background.xml" value="0.3880208333333333" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/ic_send_message.xml" value="0.3880208333333333" />
@@ -16,9 +17,13 @@
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/message_recieve_container_bg.xml" value="0.3880208333333333" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/message_revieve_container_bg.xml" value="0.3880208333333333" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/drawable/message_sent_container_bg.xml" value="0.3880208333333333" />
-        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/activity_chat.xml" value="0.25" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/activity_chat.xml" value="0.22" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/activity_conversation.xml" value="0.22" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/activity_login.xml" value="0.1" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/activity_media.xml" value="0.20572916666666666" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/chat_message_container.xml" value="0.371875" />
-        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/message_receive_container.xml" value="0.5" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/conversation_container.xml" value="0.25" />
+        <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/message_receive_container.xml" value="0.1" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/message_recieve_container.xml" value="0.371875" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/message_sent_container.xml" value="0.33" />
         <entry key="..\:/Users/Khang/AndroidStudioProjects/mshare/mshare/app/src/main/res/layout/users_view_container.xml" value="0.371875" />

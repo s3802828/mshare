@@ -2,10 +2,12 @@ package com.example.mshare;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import android.widget.Toast;
 
 import com.example.mshare.interfaces.APIService;
 import com.example.mshare.models.Data;
+import com.example.mshare.models.Message;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
 import com.example.mshare.utilClasses.Client;
@@ -32,12 +35,19 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -109,6 +119,23 @@ public class UserListActivity extends AppCompatActivity {
 
                             }
                         });
+//                db.collection("rooms").document("c50rQqDlVtRcwgm5tG41").addSnapshotListener(new EventListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+//                        assert value != null;
+//                        if(value.get("response").equals("accept"))
+//                            Toast.makeText(UserListActivity.this, "Accept", Toast.LENGTH_SHORT).show();
+//                        else if(value.get("response").equals("decline"))
+//                            Toast.makeText(UserListActivity.this, "Decline", Toast.LENGTH_SHORT).show();
+//                        else Toast.makeText(UserListActivity.this, "NR", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+                db.collection("rooms")
+                        .document("c50rQqDlVtRcwgm5tG41")
+                        .collection("request_response")
+                        .whereEqualTo(FieldPath.documentId(),"BvlYluwhVXjvbm5Ww4tu")
+                        .addSnapshotListener(eventListener)
+                        ;
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -118,6 +145,27 @@ public class UserListActivity extends AppCompatActivity {
         });
 
     }
+    private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
+        if (error != null) {
+            return;
+        }
+        String res = null;
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    res = documentChange.getDocument().getString("response");
+                    if(res.equals("accept")){
+                        Intent intent = new Intent(UserListActivity.this, SongListActivity.class);
+                        setResult(100, intent);
+                        finish();
+                    }
+                    else if(res.equals("decline"))
+                        Toast.makeText(UserListActivity.this, "This user has declined your request", Toast.LENGTH_SHORT).show();
+                    else Toast.makeText(UserListActivity.this, "No response from this user", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

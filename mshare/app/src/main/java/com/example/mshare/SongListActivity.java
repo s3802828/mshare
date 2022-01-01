@@ -25,7 +25,7 @@ public class SongListActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(SongListActivity.this, UserListActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, 100);
             }
         });
     }

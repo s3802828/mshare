@@ -203,11 +203,16 @@ public class LoginActivity extends AppCompatActivity {
                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(@NonNull Void unused) {
+                                                    newUser.setActive("No Active");
+                                                    newUser.setOnlineStatus("Online");
                                                     startActivityForResult(intent, 200);
                                                 }
                                             });
                                 } else {
-                                    db.collection("users").document(user.getUid()).update("token", token)
+                                    db.collection("users").document(user.getUid())
+                                            .update("token", token,
+                                                    "onlineStatus", "Online",
+                                                    "active", "No Active")
                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(@NonNull Void unused) {

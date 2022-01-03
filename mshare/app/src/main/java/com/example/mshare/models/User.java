@@ -8,6 +8,8 @@ public class User implements Serializable {
     private String email;
     private String avatar;
     private String token;
+    private String onlineStatus;
+    private String active;
 
     public User() {
     }
@@ -56,5 +58,19 @@ public class User implements Serializable {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getOnlineStatus() { return onlineStatus; }
+
+    public void setOnlineStatus(String onlineStatus) {
+        this.onlineStatus = onlineStatus;
+    }
+
+    public String getActive() {
+        return active;
+    }
+
+    public void setActive(String active) {
+        this.active = active;
     }
 }

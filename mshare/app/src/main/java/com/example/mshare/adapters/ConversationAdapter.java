@@ -1,12 +1,14 @@
 package com.example.mshare.adapters;
 
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.mshare.databinding.ConversationContainerBinding;
 import com.example.mshare.interfaces.ConversationListener;
 import com.example.mshare.models.Message;
@@ -17,12 +19,14 @@ import java.util.List;
 
 public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapter.ConversationViewHolder>{
     private final List<Message> messageList;
+    private Context context;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private ConversationListener conversationListener;
 
-    public ConversationAdapter(List<Message> messageList, ConversationListener conversationListener) {
+    public ConversationAdapter(List<Message> messageList, ConversationListener conversationListener, Context context) {
         this.messageList = messageList;
         this.conversationListener = conversationListener;
+        this.context = context;
     }
 
     @NonNull
@@ -54,18 +58,18 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         }
 
         void setConversationData(Message message) {
-//            conversationContainerBinding.conversationAvatar
+            Glide.with(context).load(message.conversationAvatar).into(conversationContainerBinding.conversationAvatar);
             conversationContainerBinding.conversationName.setText(message.conversationName);
             conversationContainerBinding.recentConversation.setText(message.content);
             conversationContainerBinding.getRoot().setOnClickListener(v -> {
                 User user = new User();
+                user.setName(message.conversationName);
+                user.setAvatar(message.conversationAvatar);
                 if(firebaseAuth.getUid().equals(message.senderId)
                         && !firebaseAuth.getUid().equals(message.receiverId)) {
                     user.setId(message.receiverId);
-                    //avatar
                 } else {
                     user.setId(message.senderId);
-                    //avatar
                 }
                 conversationListener.onConversationClicked(user);
             });

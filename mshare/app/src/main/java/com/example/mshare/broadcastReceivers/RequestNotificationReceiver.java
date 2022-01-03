@@ -31,7 +31,7 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
                     .document("BvlYluwhVXjvbm5Ww4tu")
                     .update("response", "no_response");
         }
-        else{
+        else {
             boolean isAccept = bundle.getBoolean("accept");
             if(isAccept) {
 //                Toast.makeText(context, "Accept!", Toast.LENGTH_SHORT).show();

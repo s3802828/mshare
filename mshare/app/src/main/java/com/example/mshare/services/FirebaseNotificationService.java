@@ -11,8 +11,10 @@ import android.os.CountDownTimer;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import com.example.mshare.ChatActivity;
 import com.example.mshare.R;
 import com.example.mshare.broadcastReceivers.RequestNotificationReceiver;
+import com.example.mshare.models.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,12 +36,17 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        System.out.println("Hello");
+//        System.out.println("Hello");
         String receiverId = remoteMessage.getData().get("receiverId");
+        String body = remoteMessage.getData().get("body");
         FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
-        if(currUser != null) {
+        if (currUser != null) {
             assert receiverId != null;
-            if (receiverId.equals(currUser.getUid())) sendNotification(remoteMessage);
+            if (receiverId.equals(currUser.getUid())) {
+                if (body == null) {
+                    sendNotification(remoteMessage);
+                } else sendMessageNotification(remoteMessage);
+            }
         }
 
     }
@@ -102,5 +109,50 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                 e.printStackTrace();
             }
         });
+    }
+    private void sendMessageNotification(RemoteMessage remoteMessage) {
+        //create channel
+        if (notificationManager == null) {
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel channel1 = new NotificationChannel("message_notification",
+                    "Message Notification", NotificationManager.IMPORTANCE_HIGH);
+            channel1.setDescription("This is Request Message Notification Channel");
+            notificationManager.createNotificationChannel(channel1);
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String senderId = remoteMessage.getData().get("senderId");
+        Intent intent = new Intent(this, ChatActivity.class);
+        db.collection("users").document(senderId).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        String senderName = documentSnapshot.getString("name");
+                        User user = new User();
+                        user.setId(senderId);
+                        String body = remoteMessage.getData().get("body");
+                        user.setName(senderName);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        intent.putExtra("User", user);
+
+                        Notification notification = new NotificationCompat.Builder(FirebaseNotificationService.this,
+                                "message_notification")
+                                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                .setContentTitle(senderName)
+                                .setContentText(body)
+                                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                .setContentIntent(PendingIntent.getActivity(FirebaseNotificationService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT))
+                                .setAutoCancel(true)
+                                .build();
+                        notificationManager.notify(1, notification);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 }

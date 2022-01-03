@@ -2,6 +2,7 @@ package com.example.mshare;
 
 import static com.example.mshare.ChatActivity.convertDateFormat;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -15,8 +16,10 @@ import com.example.mshare.databinding.ActivityConversationBinding;
 import com.example.mshare.interfaces.ConversationListener;
 import com.example.mshare.models.Message;
 import com.example.mshare.models.User;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -45,7 +48,7 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
 
     private void initialize() {
         conversationList = new ArrayList<>();
-        conversationAdapter = new ConversationAdapter(conversationList, this);
+        conversationAdapter = new ConversationAdapter(conversationList, this, ConversationActivity.this);
         activityConversationBinding.conversationRecyclerView.setAdapter(conversationAdapter);
         database = FirebaseFirestore.getInstance();
     }
@@ -72,20 +75,18 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                     String receiverId = documentChange.getDocument().getString("lastMessage_receiverId");
                     message.senderId = senderId;
                     message.receiverId = receiverId;
+                    message.conversationAvatar = documentChange.getDocument().getString("lastMessage_receiverAvatar");
+
                     if (firebaseAuth.getUid().equals(senderId)) {
-                        message.conversationName = documentChange.getDocument().getString("lastMessage_receiverId");
                         message.content = "You: " + documentChange.getDocument().getString("lastMessage");
+                        message.conversationName = documentChange.getDocument().getString("lastMessage_receiverName");
+
                     } else if (firebaseAuth.getUid().equals(receiverId)) {
-                        message.conversationName = documentChange.getDocument().getString("lastMessage_senderId");
                         message.content = documentChange.getDocument().getString("lastMessage");
+                        message.conversationName = documentChange.getDocument().getString("lastMessage_senderName");
                     }
                     message.date = documentChange.getDocument().getDate("timestamp");
                     conversationList.add(message);
-                    System.out.println("ADDED");
-                    System.out.println(conversationList.get(0).content);
-                    System.out.println(conversationList.get(0).date);
-                    System.out.println(conversationList.size());
-
                 }
                 else if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     //find the old message in the list
@@ -96,17 +97,13 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                                 && conversationList.get(i).receiverId.equals(receiverId)) {
                             conversationList.get(i).content = documentChange.getDocument().getString("lastMessage");
                             conversationList.get(i).timestamp = convertDateFormat(documentChange.getDocument().getDate("timestamp"));
-                            System.out.println("Modified");
-                            System.out.println(conversationList.get(0).content);
-                            System.out.println(conversationList.get(0).date);
-                            System.out.println(conversationList.size());
                             break;
                         }
                     }
                 }
             }
             //Sort the list of conversation base on timestamp then update the conversation adapter
-            Collections.sort(conversationList, Comparator.comparing(a -> a.date));
+            Collections.sort(conversationList, (a, b) -> b.date.compareTo(a.date));
             conversationAdapter.notifyDataSetChanged();
             activityConversationBinding.conversationRecyclerView.smoothScrollToPosition(0);
             activityConversationBinding.conversationRecyclerView.setVisibility(View.VISIBLE);

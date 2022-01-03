@@ -73,18 +73,14 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                     message.senderId = senderId;
                     message.receiverId = receiverId;
                     if (firebaseAuth.getUid().equals(senderId)) {
-                        message.conversationName = documentChange.getDocument().getString("lastMessage_receiverId");
                         message.content = "You: " + documentChange.getDocument().getString("lastMessage");
+                        message.conversationName = documentChange.getDocument().getString("lastMessage_receiverName");
                     } else if (firebaseAuth.getUid().equals(receiverId)) {
-                        message.conversationName = documentChange.getDocument().getString("lastMessage_senderId");
                         message.content = documentChange.getDocument().getString("lastMessage");
+                        message.conversationName = documentChange.getDocument().getString("lastMessage_senderName");
                     }
                     message.date = documentChange.getDocument().getDate("timestamp");
                     conversationList.add(message);
-                    System.out.println("ADDED");
-                    System.out.println(conversationList.get(0).content);
-                    System.out.println(conversationList.get(0).date);
-                    System.out.println(conversationList.size());
 
                 }
                 else if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
@@ -96,17 +92,13 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                                 && conversationList.get(i).receiverId.equals(receiverId)) {
                             conversationList.get(i).content = documentChange.getDocument().getString("lastMessage");
                             conversationList.get(i).timestamp = convertDateFormat(documentChange.getDocument().getDate("timestamp"));
-                            System.out.println("Modified");
-                            System.out.println(conversationList.get(0).content);
-                            System.out.println(conversationList.get(0).date);
-                            System.out.println(conversationList.size());
                             break;
                         }
                     }
                 }
             }
             //Sort the list of conversation base on timestamp then update the conversation adapter
-            Collections.sort(conversationList, Comparator.comparing(a -> a.date));
+            Collections.sort(conversationList, (a, b) -> b.date.compareTo(a.date));
             conversationAdapter.notifyDataSetChanged();
             activityConversationBinding.conversationRecyclerView.smoothScrollToPosition(0);
             activityConversationBinding.conversationRecyclerView.setVisibility(View.VISIBLE);

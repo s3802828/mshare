@@ -11,6 +11,7 @@ import com.example.mshare.databinding.ConversationContainerBinding;
 import com.example.mshare.interfaces.ConversationListener;
 import com.example.mshare.models.Message;
 import com.example.mshare.models.User;
+import com.example.mshare.utilClasses.SetImageFromUri;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
@@ -54,11 +55,13 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         }
 
         void setConversationData(Message message) {
-//            conversationContainerBinding.conversationAvatar
+            conversationContainerBinding.conversationAvatar.setTag(message.conversationAvatar);
+            new SetImageFromUri().execute(conversationContainerBinding.conversationAvatar);
             conversationContainerBinding.conversationName.setText(message.conversationName);
             conversationContainerBinding.recentConversation.setText(message.content);
             conversationContainerBinding.getRoot().setOnClickListener(v -> {
                 User user = new User();
+                user.setName(message.conversationName);
                 if(firebaseAuth.getUid().equals(message.senderId)
                         && !firebaseAuth.getUid().equals(message.receiverId)) {
                     user.setId(message.receiverId);

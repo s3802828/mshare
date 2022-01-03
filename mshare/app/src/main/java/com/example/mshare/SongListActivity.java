@@ -11,15 +11,26 @@ import android.view.View;
 import android.widget.Button;
 
 import com.facebook.login.LoginManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Objects;
 
 public class SongListActivity extends AppCompatActivity {
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private FirebaseFirestore database = FirebaseFirestore.getInstance();
+    String userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
+        userId = firebaseAuth.getUid();
+
         Button button = findViewById(R.id.button2);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -28,6 +39,7 @@ public class SongListActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
     }
 
     @Override
@@ -44,6 +56,7 @@ public class SongListActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             case R.id.logout:
+                updateUserStatus("Offline");
                 firebaseAuth.signOut();
                 LoginManager.getInstance().logOut();
                 Intent intent1 = new Intent(SongListActivity.this, LoginActivity.class);
@@ -54,4 +67,11 @@ public class SongListActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    private void updateUserStatus(String status) {
+        database.collection("users").document(userId).update("onlineStatus", status);
+    }
+
+
+
 }

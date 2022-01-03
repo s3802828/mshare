@@ -10,15 +10,28 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.mshare.adapters.MessageAdapter;
 import com.example.mshare.databinding.ActivityChatBinding;
+import com.example.mshare.interfaces.APIService;
+import com.example.mshare.models.Data;
 import com.example.mshare.models.Message;
+import com.example.mshare.models.NotificationResponse;
+import com.example.mshare.models.Sender;
 import com.example.mshare.models.User;
+import com.example.mshare.utilClasses.Client;
 import com.facebook.login.LoginManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -32,6 +45,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ChatActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private FirebaseFirestore database;
@@ -40,10 +57,8 @@ public class ChatActivity extends AppCompatActivity {
     private List<Message> messageList;
     private MessageAdapter messageAdapter;
     private AppCompatImageView backButton;
+    private APIService apiService;
 
-    //    private PreferenceManager preferenceManager;
-//    private String senderId;
-    private final String TAG = "ChatActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,12 +72,22 @@ public class ChatActivity extends AppCompatActivity {
 
     private void initialize() {
         messageList = new ArrayList<Message>();
+        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
         messageAdapter = new MessageAdapter(messageList, firebaseAuth.getUid());
         activityChatBinding.chatAllMessagesRecyclerView.setAdapter(messageAdapter);
         database = FirebaseFirestore.getInstance();
         receiver = (User) getIntent().getSerializableExtra("User");
+        database.collection("users").document(receiver.getId()).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        String name = documentSnapshot.getString("name");
+                        activityChatBinding.userName.setText(name);
+                    }
+                });
+
         backButton = findViewById(R.id.backBtn);
-//        backButton.setOnClickListener(v -> onBackPressed());
+        backButton.setOnClickListener(v -> onBackPressed());
     }
 
     public static String convertDateFormat(Date date) {
@@ -71,11 +96,11 @@ public class ChatActivity extends AppCompatActivity {
 
 
     private void sendMessage() {
-        DocumentReference documentReference =  database.collection("conversation")
+        DocumentReference documentReference = database.collection("conversation")
                 .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()));
         String content = activityChatBinding.messageContent.getText().toString();
         //Check empty space message
-        if(!content.trim().isEmpty()) {
+        if (!content.trim().isEmpty()) {
             HashMap<String, Object> message = new HashMap<>();
             message.put("senderId", firebaseAuth.getUid());
             message.put("receiverId", receiver.getId());
@@ -96,7 +121,13 @@ public class ChatActivity extends AppCompatActivity {
             lastMessage.put("timestamp", new Date());
             documentReference.set(lastMessage);
         }
+        //notification
+
+        sendMessageRequestNotification(receiver.getId(), content);
     }
+
+
+
 
     private void realTimeListenChat() {
         database.collection("conversation")
@@ -133,7 +164,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
             Collections.sort(messageList, Comparator.comparing(a -> a.date));
-
             if (count == 0) {
                 messageAdapter.notifyDataSetChanged();
             } else {
@@ -170,6 +200,83 @@ public class ChatActivity extends AppCompatActivity {
             return b + a;
         }
         return a + b;
+    }
+
+    private void updateUserActive(String active) {
+        database.collection("users").document(firebaseAuth.getUid()).update("active", active);
+    }
+
+    private void listenUserActive() {
+        database.collection("users").document(receiver.getId())
+                .addSnapshotListener(ChatActivity.this, ((value, error) -> {
+                    if (error != null) {
+                        return;
+                    }
+                    if (value != null) {
+                        if (value.getString("active") != null) {
+                            if (value.getString("active").equals("Active now")) {
+                                activityChatBinding.userStatus.setText("Active now");
+                            } else {
+                                activityChatBinding.userStatus.setText("No Active");
+                            }
+                        }
+                    }
+                }));
+    }
+
+    private void sendMessageRequestNotification(String receiverId, String content) {
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+        database.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                String token = task.getResult().getString("token");
+                String active = task.getResult().getString("active");
+                if (active.equals("Active now")) {
+                    return;
+                }
+                assert currentUser != null;
+                Data data = new Data(currentUser.getUid(), null, content, null, receiverId);
+                Sender sender = new Sender(data, token);
+                apiService.sendNotification(sender)
+                        .enqueue(new Callback<NotificationResponse>() {
+                            @Override
+                            public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                                if (response.code() == 200) {
+                                    assert response.body() != null;
+                                    if (response.body().getSuccess() != 1) {
+                                        Toast.makeText(ChatActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<NotificationResponse> call, Throwable t) {
+
+                            }
+                        });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+
+
+    @Override
+    protected void onPause() {
+        updateUserActive("No Active");
+        listenUserActive();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        updateUserActive("Active now");
+        listenUserActive();
+        super.onResume();
     }
 
 }

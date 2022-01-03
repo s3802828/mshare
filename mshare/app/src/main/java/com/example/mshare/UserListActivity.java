@@ -20,12 +20,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.mshare.interfaces.APIService;
 import com.example.mshare.models.Data;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
 import com.example.mshare.utilClasses.Client;
-import com.example.mshare.utilClasses.SetImageFromUri;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -155,8 +155,9 @@ public class UserListActivity extends AppCompatActivity {
             @SuppressLint("ViewHolder") View rowLayout = inflater.inflate(R.layout.user_list_view, parent, false);
             ImageView avatarView = rowLayout.findViewById(R.id.user_avatar);
             avatarView.setTag(avatars.get(position));
+            Glide.with(UserListActivity.this).load(avatars.get(position)).into(avatarView);
+
             TextView nameView = rowLayout.findViewById(R.id.userName);
-            new SetImageFromUri().execute(avatarView);
             nameView.setText(userNames.get(position));
 
             Button sendRequestButton = rowLayout.findViewById(R.id.send_request_btn);

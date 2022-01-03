@@ -119,6 +119,8 @@ public class ChatActivity extends AppCompatActivity {
             lastMessage.put("lastMessage_receiverName", receiver.getName());
             lastMessage.put("lastMessage", content);
             lastMessage.put("timestamp", new Date());
+            lastMessage.put("lastMessage_receiverAvatar",
+                    "https://firebasestorage.googleapis.com/v0/b/androiddev-cbbc9.appspot.com/o/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png?alt=media&token=4808957a-e786-4f03-b8c1-800d50d93b7d");
             documentReference.set(lastMessage);
         }
         //notification
@@ -203,7 +205,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void updateUserActive(String active) {
-        database.collection("users").document(firebaseAuth.getUid()).update("active", active);
+        database.collection("users").document(firebaseAuth.getCurrentUser().getUid()).update("active", active);
     }
 
     private void listenUserActive() {

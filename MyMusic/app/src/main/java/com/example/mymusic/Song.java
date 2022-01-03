@@ -2,16 +2,19 @@ package com.example.mymusic;
 
 public class Song {
 
-    private String title, url, cover, artist;
+    private String id, title, url, cover, artist;
 
     public Song(){}
 
-    public Song(String title, String url, String cover, String artist) {
+    public Song(String id, String title, String url, String cover, String artist) {
+        this.id = id;
         this.title = title;
         this.url = url;
         this.cover = cover;
         this.artist = artist;
     }
+
+    public String getId() {return id;}
 
     public String getCover() {
         return cover;
@@ -24,7 +27,6 @@ public class Song {
     public String getTitle() {
         return title;
     }
-
 
     public String getUrl() {
         return url;

@@ -20,6 +20,7 @@ public class MusicService extends Service implements
     private ArrayList<Song> songs;
     private MediaPlayer player = new MediaPlayer();
     private int currentPosn=0;
+    private boolean songChanged = false;
 
     public MusicService() {
     }
@@ -88,9 +89,42 @@ public class MusicService extends Service implements
     public void onCompletion(MediaPlayer mp) {
         try {
             playNext();
+            songChanged = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setSongChanged() {
+        this.songChanged = false;
+    }
+
+    public boolean isSongChanged() {
+        return this.songChanged;
+    }
+
+    public String getSongTitle() {
+        Song song = songs.get(currentPosn);
+
+        return song.getTitle();
+    }
+
+    public String getSongId() {
+        Song song = songs.get(currentPosn);
+
+        return song.getId();
+    }
+
+    public String getSongArtist() {
+        Song song = songs.get(currentPosn);
+
+        return song.getArtist();
+    }
+
+    public String getSongCover() {
+        Song song = songs.get(currentPosn);
+
+        return song.getCover();
     }
 
     public MediaPlayer getPlayer() {
@@ -113,19 +147,19 @@ public class MusicService extends Service implements
         player.start();
     }
 
-    public int playNext() throws IOException {
+    public boolean playNext() throws IOException {
         currentPosn++;
         if (currentPosn == songs.size()) currentPosn = 0;
         playSong(currentPosn);
-        return getTotalDuration();
+        return true;
     }
 
-    public int playPrev() throws IOException {
+    public boolean playPrev() throws IOException {
         currentPosn--;
         if (currentPosn < 0)
-            currentPosn = songs.size();
+            currentPosn = songs.size() - 1;
         playSong(currentPosn);
-        return getTotalDuration();
+        return true;
     }
 
     public class MusicBinder extends Binder {

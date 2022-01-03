@@ -8,10 +8,10 @@
 
     <ImageView
         android:id="@+id/imageCoverMedia"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:layout_margin="10dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="12dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/textSong"
         app:layout_constraintEnd_toEndOf="parent"
@@ -23,9 +23,9 @@
         android:id="@+id/seekBarDuration"
         android:layout_width="350dp"
         android:layout_height="17dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="50dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.475"
+        app:layout_constraintHorizontal_bias="0.491"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textSong" />
 
@@ -34,6 +34,7 @@
         android:layout_width="76dp"
         android:layout_height="74dp"
         android:layout_marginTop="32dp"
+        android:background="@null"
         android:onClick="manageAudio"
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
@@ -47,6 +48,7 @@
         android:layout_width="76dp"
         android:layout_height="74dp"
         android:layout_marginTop="32dp"
+        android:background="@null"
         android:onClick="previousSong"
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toStartOf="@+id/imageButton"
@@ -60,6 +62,7 @@
         android:layout_width="76dp"
         android:layout_height="74dp"
         android:layout_marginTop="32dp"
+        android:background="@null"
         android:onClick="nextSong"
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
@@ -102,21 +105,23 @@
         android:id="@+id/textSong"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="336dp"
+        android:layout_marginTop="300dp"
         android:text="TextView"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button"
+    <TextView
+        android:id="@+id/textArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
-        android:onClick="toSpotify"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="TextView"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewTotalDuration"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textSong"
+        app:layout_constraintVertical_bias="0.461" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

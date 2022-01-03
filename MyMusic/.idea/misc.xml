@@ -3,9 +3,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_main.xml" value="0.12613981762917933" />
-        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_song_list.xml" value="0.12613981762917933" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_add_song.xml" value="0.264" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_media_play.xml" value="0.24547101449275363" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_song_list.xml" value="0.1" />
         <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/activity_spotify.xml" value="0.17753623188405798" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/current_song.xml" value="0.264" />
+        <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/current_song_list.xml" value="0.264" />
         <entry key="..\:/Users/ASUS/AndroidStudioProjects/MyMusic/app/src/main/res/layout/song_item.xml" value="0.264" />
       </map>
     </option>

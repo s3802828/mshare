@@ -19,10 +19,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -38,10 +40,15 @@ public class MainActivity extends AppCompatActivity {
     private int position = 0;
     private ArrayList<String> songListId;
     private TextView songTitle;
+    private TextView songArtist;
     private ImageView songCover;
     private TextView txtDuration;
     private TextView txtTotalDuration;
     private int totalDuration;
+    private boolean isNext, isPrev;
+    private String roomId;
+    private String currentSongId;
+    private int currentPosition = 0;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -67,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,14 +88,16 @@ public class MainActivity extends AppCompatActivity {
         txtDuration = (TextView) findViewById(R.id.textViewDuration);
         txtTotalDuration = (TextView) findViewById(R.id.textViewTotalDuration);
         songTitle = (TextView) findViewById(R.id.textSong);
-
+        songArtist = (TextView) findViewById(R.id.textArtist);
+        songCover = (ImageView) findViewById(R.id.imageCoverMedia);
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Collecting songs...");
         progressDialog.show();
 
-
+        Intent intent = getIntent();
+        roomId = intent.getExtras().get("room_id")+"";
 
     }
 
@@ -103,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startMusicPlayer() {
-        DocumentReference docRef = db.collection("room").document("MrsOi6VtwVM3ZOrkDQPj");
+        DocumentReference docRef = db.collection("room").document(roomId);
         docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -116,17 +124,17 @@ public class MainActivity extends AppCompatActivity {
                     songListId.addAll(Arrays.asList(songId));
                     System.out.println(songs.toString());
 
-                    db.collection("songs").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    db.collection("songs").whereIn(FieldPath.documentId(), songListId).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                         @Override
                         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                             for (QueryDocumentSnapshot value: queryDocumentSnapshots) {
-                                if (songListId.contains(value.getId())) {
-                                    songs.add(value.toObject(Song.class));
-                                }
-                            }
+                                String songId = value.getId();
+                                String songTitle = value.get("title")+"";
+                                String songArtist = value.get("artist")+"";
+                                String songCover = value.get("cover")+"";
+                                String songUrl = value.get("url")+"";
 
-                            for (Song song: songs) {
-                                System.out.println(song.getTitle());
+                                songs.add(new Song(songId, songTitle, songUrl, songCover, songArtist));
                             }
 
                             if (serviceConnected) {
@@ -136,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                                 musicService.setSongs(songs);
 
                                 try {
-                                    totalDuration =  musicService.playSong(0);
+                                    totalDuration =  musicService.playSong(currentPosition);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -145,18 +153,18 @@ public class MainActivity extends AppCompatActivity {
                                 seekBarDuration.setMax(totalDuration);
                                 txtTotalDuration.setText(timeCoverter(totalDuration));
                                 playBtn.setImageResource(R.drawable.pause);
+                                songTitle.setText(musicService.getSongTitle());
+                                songArtist.setText(musicService.getSongArtist());
+
+                                Glide.with(MainActivity.this).load(musicService.getSongCover()).into(songCover);
+
+                                updateCurrentSong();
 
                                 startSeekBar();
+
                             } else {
                                 System.out.println("Service fail");
                             }
-
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @SuppressLint("SetTextI18n")
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            System.out.println("fail");
                         }
                     });
 
@@ -369,6 +377,16 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message message) {
             seekBarDuration.setProgress(message.what);
             txtDuration.setText(timeCoverter(message.what)+"");
+            if (musicService.isSongChanged()) {
+                txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+                songTitle.setText(musicService.getSongTitle());
+                songArtist.setText(musicService.getSongArtist());
+
+                Glide.with(MainActivity.this).load(musicService.getSongCover()).into(songCover);
+                updateCurrentSong();
+                musicService.setSongChanged();
+
+            }
 
         }
     };
@@ -420,12 +438,22 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //
 //        initializeMusicPlayer(position);
+//        currentPosition--;
+//        if (currentPosition < 0)
+//            currentPosition = songs.size() - 1;
 
-        int duration = musicService.playPrev();
+        isPrev = musicService.playPrev();
 
-        seekBarDuration.setMax(duration);
-        txtTotalDuration.setText(timeCoverter(duration));
+        seekBarDuration.setMax(musicService.getTotalDuration());
+        txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+        songTitle.setText(musicService.getSongTitle());
+        songArtist.setText(musicService.getSongArtist());
+
+        Glide.with(MainActivity.this).load(musicService.getSongCover()).into(songCover);
+
+        updateCurrentSong();
         playBtn.setImageResource(R.drawable.pause);
+        isPrev = false;
 
     }
 
@@ -440,18 +468,45 @@ public class MainActivity extends AppCompatActivity {
 //
 //        initializeMusicPlayer(position);
 
-        int duration = musicService.playNext();
+//        currentPosition++;
+//        if (currentPosition == songs.size()) currentPosition = 0;
 
-        seekBarDuration.setMax(duration);
-        txtTotalDuration.setText(timeCoverter(duration));
+        isNext = musicService.playNext();
+
+        seekBarDuration.setMax(musicService.getTotalDuration());
+        txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+        songTitle.setText(musicService.getSongTitle());
+        songArtist.setText(musicService.getSongArtist());
+
+        Glide.with(MainActivity.this).load(musicService.getSongCover()).into(songCover);
+
+        updateCurrentSong();
         playBtn.setImageResource(R.drawable.pause);
+        isNext = false;
 
     }
 
-    public void toSpotify(View view) {
+    public void updateCurrentSong() {
+        db.collection("room").document(roomId)
+                .update("current_song",musicService.getSongId())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Toast.makeText(MainActivity.this,"Current Song: "+musicService.getSongTitle(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, "Failed to update current song", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
-
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        db.collection("room").document(roomId).delete();
     }
 
 }

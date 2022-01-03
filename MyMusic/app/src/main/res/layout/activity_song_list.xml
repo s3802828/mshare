@@ -8,8 +8,26 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/songRecycler"
+        android:layout_width="413dp"
+        android:layout_height="467dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchViewSong" />
+
+    <Button
+        android:id="@+id/button_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Play"
+        android:onClick="playSong"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/songRecycler" />
+
+    <SearchView
+        android:id="@+id/searchViewSong"
         android:layout_width="409dp"
-        android:layout_height="729dp"
+        android:layout_height="51dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

@@ -103,7 +103,7 @@ public class SignUpActivity extends AppCompatActivity {
     public void register(String email, String password, String name) {
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(name)
-                .setPhotoUri(Uri.parse("http://www.clipartsuggest.com/images/290/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png"))
+                .setPhotoUri(Uri.parse("https://firebasestorage.googleapis.com/v0/b/androiddev-cbbc9.appspot.com/o/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png?alt=media&token=4808957a-e786-4f03-b8c1-800d50d93b7d"))
                 .build();
 
         mFirebaseAuth.createUserWithEmailAndPassword(email, password)

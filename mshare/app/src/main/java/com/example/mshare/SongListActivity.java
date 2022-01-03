@@ -65,7 +65,6 @@ public class SongListActivity extends AppCompatActivity {
 
         songsAdapter = new SongAdapter(SongListActivity.this, songArrayList, songArrayListCopy);
 
-//        songsAdapter.setSongArrayListFull();
         recyclerView.setAdapter(songsAdapter);
         EventChangeListener();
 
@@ -142,18 +141,21 @@ public class SongListActivity extends AppCompatActivity {
             HashMap<String, String> res = new HashMap<>();
             res.put("response", "");
 
+
             Toast.makeText(SongListActivity.this, "Setting up media player...", Toast.LENGTH_SHORT).show();
             db.collection("rooms").add(data).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
                 public void onSuccess(DocumentReference roomDocumentReference) {
-                    roomDocumentReference.collection("request_response").add(res).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(@NonNull DocumentReference documentReference) {
-                            Intent intent = new Intent(SongListActivity.this, MediaPlayerActivity.class);
-                            intent.putExtra("room_id", roomDocumentReference.getId());
-                            startActivity(intent);
-                        }
-                    });
+                    roomDocumentReference.collection("request_response").document(roomDocumentReference.getId())
+                            .set(res)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(@NonNull Void unused) {
+                                    Intent intent = new Intent(SongListActivity.this, MediaPlayerActivity.class);
+                                    intent.putExtra("room_id", roomDocumentReference.getId());
+                                    startActivity(intent);
+                                }
+                            });
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

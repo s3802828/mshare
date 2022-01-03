@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.example.mshare.MediaPlayerActivity;
 import com.example.mshare.SongListActivity;
 import com.example.mshare.services.FirebaseNotificationService;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -24,33 +25,37 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(0);
         Bundle bundle = intent.getExtras();
-        if(bundle == null) {
+        String roomId = bundle.getString("room_id");
+        System.out.println(bundle.containsKey("room_id"));
+        if(!bundle.containsKey("accept")) {
 //            Toast.makeText(context, "No Response!", Toast.LENGTH_SHORT).show();
-            db.collection("rooms").document("c50rQqDlVtRcwgm5tG41")
+            db.collection("rooms").document(roomId)
                     .collection("request_response")
-                    .document("BvlYluwhVXjvbm5Ww4tu")
+                    .document(roomId)
                     .update("response", "no_response");
         }
         else {
             boolean isAccept = bundle.getBoolean("accept");
             if(isAccept) {
 //                Toast.makeText(context, "Accept!", Toast.LENGTH_SHORT).show();
-                db.collection("rooms").document("c50rQqDlVtRcwgm5tG41")
+                db.collection("rooms").document(roomId)
                         .collection("request_response")
-                        .document("BvlYluwhVXjvbm5Ww4tu")
+                        .document(roomId)
                         .update("response", "accept").addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(@NonNull Void unused) {
-                        Intent intent1 = new Intent(context, SongListActivity.class);
+                        Intent intent1 = new Intent(context, MediaPlayerActivity.class);
+                        intent1.putExtra("isSharingMode", true);
+                        intent1.putExtra("room_id", roomId);
                         context.startActivity(intent1);
                     }
                 });
             }
             else {
 //                Toast.makeText(context, "Decline!", Toast.LENGTH_SHORT).show();
-                db.collection("rooms").document("c50rQqDlVtRcwgm5tG41")
+                db.collection("rooms").document(roomId)
                         .collection("request_response")
-                        .document("BvlYluwhVXjvbm5Ww4tu")
+                        .document(roomId)
                         .update("response", "decline");
             }
         }

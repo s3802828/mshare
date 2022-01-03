@@ -63,15 +63,19 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
         if(notificationManager == null) createNotificationChannels();
         String senderId = remoteMessage.getData().get("senderId");
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Intent noResponseIntent = new Intent(this, RequestNotificationReceiver.class);
+        String roomId = remoteMessage.getData().get("title");
 
+        Intent noResponseIntent = new Intent(this, RequestNotificationReceiver.class);
+        noResponseIntent.putExtra("room_id", roomId);
         Intent acceptIntent = new Intent(this, RequestNotificationReceiver.class);
         acceptIntent.putExtra("accept", true);
-        PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(this, 100, acceptIntent, PendingIntent.FLAG_IMMUTABLE);
+        acceptIntent.putExtra("room_id", roomId);
+        PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(this, 100, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent declineIntent = new Intent(this, RequestNotificationReceiver.class);
         declineIntent.putExtra("accept", false);
-        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(this, 200, declineIntent, PendingIntent.FLAG_IMMUTABLE);
+        declineIntent.putExtra("room_id", roomId);
+        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(this, 200, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(null,"ACCEPT", pendingAcceptIntent)
                 .build();

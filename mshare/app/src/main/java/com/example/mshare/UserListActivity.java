@@ -54,6 +54,7 @@ public class UserListActivity extends AppCompatActivity {
     private final ArrayList<String> userIds = new ArrayList<>();
     private final ArrayList<String> avatars = new ArrayList<>();
     private APIService apiService;
+    private String roomId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,8 @@ public class UserListActivity extends AppCompatActivity {
         apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         assert firebaseUser != null;
+        Intent intent = getIntent();
+        roomId = intent.getExtras().getString("room_id");
         db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -93,7 +96,7 @@ public class UserListActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 String token = task.getResult().getString("token");
                 assert currentUser != null;
-                Data data = new Data(currentUser.getUid(), null, null, null, receiverId);
+                Data data = new Data(currentUser.getUid(), null, null, roomId, receiverId);
                 Sender sender = new Sender(data, token);
                 apiService.sendNotification(sender)
                         .enqueue(new Callback<NotificationResponse>() {
@@ -114,9 +117,9 @@ public class UserListActivity extends AppCompatActivity {
                         });
 //
                 db.collection("rooms")
-                        .document("c50rQqDlVtRcwgm5tG41")
+                        .document(roomId)
                         .collection("request_response")
-                        .whereEqualTo(FieldPath.documentId(),"BvlYluwhVXjvbm5Ww4tu")
+                        .whereEqualTo(FieldPath.documentId(),roomId)
                         .addSnapshotListener(eventListener)
                         ;
             }
@@ -138,7 +141,7 @@ public class UserListActivity extends AppCompatActivity {
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     res = documentChange.getDocument().getString("response");
                     if(res.equals("accept")){
-                        Intent intent = new Intent(UserListActivity.this, SongListActivity.class);
+                        Intent intent = new Intent(UserListActivity.this, MediaPlayerActivity.class);
                         setResult(100, intent);
                         finish();
                     }

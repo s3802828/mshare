@@ -1,6 +1,7 @@
 package com.example.mshare;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -21,11 +22,15 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mshare.models.Song;
+import com.example.mshare.models.User;
 import com.example.mshare.services.MusicService;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -34,6 +39,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class MediaPlayerActivity extends AppCompatActivity {
 
@@ -75,6 +81,8 @@ public class MediaPlayerActivity extends AppCompatActivity {
     ArrayList<Song> songs;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private boolean isSharingMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,9 +108,43 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         roomId = intent.getExtras().get("room_id")+"";
-
+        if(intent.hasExtra("isSharingMode")) {
+            isSharingMode = true;
+        }
+        if(isSharingMode){
+            db.collection("rooms")
+                    .whereEqualTo(FieldPath.documentId(), roomId)
+                    .addSnapshotListener(eventListener);
+        }
     }
 
+    private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
+        if (error != null) {
+            return;
+        }
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    int currentSong = Integer.parseInt(Objects.requireNonNull(documentChange.getDocument().getString("current_song")));
+                    String currentDuration = documentChange.getDocument().getString("current_duration");
+                    try {
+                        musicService.getPlayer().reset();
+                        musicService.playSong(currentSong);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    assert currentDuration != null;
+                    musicService.getPlayer().seekTo(Integer.parseInt(currentDuration));
+                }
+            }
+        }
+    };
+
+    public void onShare(View v){
+        Intent intent = new Intent(MediaPlayerActivity.this, UserListActivity.class);
+        intent.putExtra("room_id", roomId);
+        startActivityForResult(intent, 100);
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -124,7 +166,6 @@ public class MediaPlayerActivity extends AppCompatActivity {
                     System.out.println();
 
                     songListId.addAll(Arrays.asList(songId));
-                    System.out.println(songs.toString());
 
                     db.collection("songs").whereIn(FieldPath.documentId(), songListId).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                         @Override
@@ -144,26 +185,26 @@ public class MediaPlayerActivity extends AppCompatActivity {
                                 if (progressDialog.isShowing()) progressDialog.dismiss();
                                 System.out.println(songs.toString());
                                 musicService.setSongs(songs);
-
-                                try {
-                                    totalDuration =  musicService.playSong(currentPosition);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                if(isSharingMode){
+                                    db.collection("rooms").document(roomId)
+                                            .update("guest", firebaseAuth.getCurrentUser().getUid());
+                                } else {
+                                    try {
+                                        musicService.playSong(currentPosition);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    updateCurrentSong();
                                 }
 
+                                    seekBarDuration.setMax(musicService.getTotalDuration());
+                                    txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+                                    playBtn.setImageResource(R.drawable.pause);
+                                    songTitle.setText(musicService.getSongTitle());
+                                    songArtist.setText(musicService.getSongArtist());
 
-                                seekBarDuration.setMax(totalDuration);
-                                txtTotalDuration.setText(timeCoverter(totalDuration));
-                                playBtn.setImageResource(R.drawable.pause);
-                                songTitle.setText(musicService.getSongTitle());
-                                songArtist.setText(musicService.getSongArtist());
-
-                                Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
-
-                                updateCurrentSong();
-
-                                startSeekBar();
-
+                                    Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
+                                    startSeekBar();
                             } else {
                                 System.out.println("Service fail");
                             }
@@ -255,121 +296,6 @@ public class MediaPlayerActivity extends AppCompatActivity {
         }).start();
     }
 
-//    private void initializeMusicPlayer(int pos) throws IOException {
-//
-//        if (mediaPlayer!=null && mediaPlayer.isPlaying()) {
-//            mediaPlayer.reset();
-//        }
-//
-//        System.out.println(pos);
-//        String songId = songListId.get(pos);
-//        System.out.println(songId);
-//
-//        DocumentReference songRef = db.collection("songs").document(songId);
-//        songRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-//            @SuppressLint("SetTextI18n")
-//            @Override
-//            public void onSuccess(DocumentSnapshot documentSnapshot) {
-//                if(documentSnapshot.exists()) {
-//                    try {
-//                        Glide.with(MainActivity.this).load(documentSnapshot.getString("cover")).into(songCover);
-//                        mediaPlayer.setDataSource(documentSnapshot.getString("url"));
-//                        mediaPlayer.prepare();
-//
-//                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                            @SuppressLint("SetTextI18n")
-//                            @Override
-//                            public void onPrepared(MediaPlayer mp) {
-//
-//                                seekBarDuration.setMax(mediaPlayer.getDuration());
-//                                txtTotalDuration.setText(timeCoverter(mediaPlayer.getDuration()));
-//                                playBtn.setImageResource(R.drawable.pause);
-//                                mediaPlayer.start();
-//                            }
-//                        });
-//
-//                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//                            @Override
-//                            public void onCompletion(MediaPlayer mp) {
-////                                playBtn.setImageResource(R.drawable.play);
-//                                mp.reset();
-//                                if (position < songListId.size()-1) {
-//                                    position++;
-//                                } else {
-//                                    position = 0;
-//                                }
-//
-//                                try {
-//                                    initializeMusicPlayer(position);
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        });
-//
-//                        //Code for seekbar
-//                        seekBarDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//                            @Override
-//                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//
-//                                if(fromUser) {
-//                                    seekBarDuration.setProgress(progress);
-//
-//                                    mediaPlayer.seekTo(progress);
-//
-//                                    txtDuration.setText(timeCoverter(mediaPlayer.getCurrentPosition()));
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//                            }
-//
-//                            @Override
-//                            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//                            }
-//                        });
-//
-//                        new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                while(mediaPlayer != null) {
-//                                    try {
-//                                        if (mediaPlayer.isPlaying()) {
-//                                            Message message = new Message();
-//                                            message.what = mediaPlayer.getCurrentPosition();
-//                                            handler.sendMessage(message);
-//                                            Thread.sleep(1000);
-//
-//                                        }
-//                                    } catch (InterruptedException e) {
-//                                        e.printStackTrace();
-//                                    }
-//                                }
-//                            }
-//                        }).start();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    songTitle.setText(documentSnapshot.getString("title"));
-//                } else {
-//                    Toast.makeText(MainActivity.this, "No data", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//
-//        }).addOnFailureListener(new OnFailureListener() {
-//            @SuppressLint("SetTextI18n")
-//            @Override
-//            public void onFailure(@NonNull Exception e) {
-//                songTitle.setText("Fetch failed");
-//            }
-//        });
-//
-//
-//    }
 
     @SuppressLint("HandlerLeak")
     private Handler handler = new Handler() {
@@ -393,29 +319,6 @@ public class MediaPlayerActivity extends AppCompatActivity {
         }
     };
 
-//    private void fetchSongs(String songId) {
-//
-//
-//
-//            db.collection("songs").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-//                @Override
-//                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-//                    for (QueryDocumentSnapshot value: queryDocumentSnapshots) {
-//                        if (songListId.contains(value.getId())) {
-//                            songs.add(value.toObject(Song.class));
-//                        }
-//                    }
-//                }
-//            }).addOnFailureListener(new OnFailureListener() {
-//                @SuppressLint("SetTextI18n")
-//                @Override
-//                public void onFailure(@NonNull Exception e) {
-//                    System.out.println("fail");
-//                }
-//            });
-//
-//
-//    }
 
     public void manageAudio(View view) {
 
@@ -432,18 +335,6 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
     public void previousSong(View view) throws IOException {
 
-//        mediaPlayer.reset();
-//        if (position == 0) {
-//            position = songListId.size() - 1;
-//        } else {
-//            position--;
-//        }
-//
-//        initializeMusicPlayer(position);
-//        currentPosition--;
-//        if (currentPosition < 0)
-//            currentPosition = songs.size() - 1;
-
         isPrev = musicService.playPrev();
 
         seekBarDuration.setMax(musicService.getTotalDuration());
@@ -456,22 +347,9 @@ public class MediaPlayerActivity extends AppCompatActivity {
         updateCurrentSong();
         playBtn.setImageResource(R.drawable.pause);
         isPrev = false;
-
     }
 
     public void nextSong(View view) throws IOException {
-
-//        mediaPlayer.reset();
-//        if (position < songListId.size()-1) {
-//            position++;
-//        } else {
-//            position = 0;
-//        }
-//
-//        initializeMusicPlayer(position);
-
-//        currentPosition++;
-//        if (currentPosition == songs.size()) currentPosition = 0;
 
         isNext = musicService.playNext();
 
@@ -490,7 +368,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
     public void updateCurrentSong() {
         db.collection("rooms").document(roomId)
-                .update("current_song",musicService.getSongId())
+                .update("current_song",String.valueOf(musicService.getCurrentSongPosition()))
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
@@ -504,6 +382,22 @@ public class MediaPlayerActivity extends AppCompatActivity {
                     }
                 });
     }
+    private void updateCurrentDuration(int duration){
+        db.collection("rooms").document(roomId)
+                .update("current_duration", String.valueOf(duration))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+//                        Toast.makeText(MediaPlayerActivity.this,"Current Song: "+musicService.getSongTitle(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+//                        Toast.makeText(MediaPlayerActivity.this, "Failed to update current song", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
     @Override
     protected void onDestroy() {
@@ -511,4 +405,14 @@ public class MediaPlayerActivity extends AppCompatActivity {
         db.collection("rooms").document(roomId).delete();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 100){
+            if(resultCode == 100){
+                isSharingMode = true;
+                updateCurrentDuration(musicService.getCurrentPosition());
+            }
+        }
+    }
 }

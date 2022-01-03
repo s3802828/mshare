@@ -141,6 +141,10 @@ public class MusicService extends Service implements
         return player.getCurrentPosition();
     }
 
+    public int getCurrentSongPosition(){
+        return currentPosn;
+    }
+
     public void pause() {
         player.pause();
     }

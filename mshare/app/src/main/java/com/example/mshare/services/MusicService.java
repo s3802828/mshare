@@ -167,6 +167,9 @@ public class MusicService extends Service implements
         playSong(currentPosn);
         return true;
     }
+    public void deleteMediaPlayer(){
+        this.player = null;
+    }
 
     public class MusicBinder extends Binder {
         public MusicService getService(){

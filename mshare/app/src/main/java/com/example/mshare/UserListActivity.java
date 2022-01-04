@@ -37,6 +37,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -55,6 +56,7 @@ public class UserListActivity extends AppCompatActivity {
     private final ArrayList<String> avatars = new ArrayList<>();
     private APIService apiService;
     private String roomId;
+    private ListenerRegistration listener1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +118,7 @@ public class UserListActivity extends AppCompatActivity {
                             }
                         });
 //
-                db.collection("rooms")
+                listener1 = db.collection("rooms")
                         .document(roomId)
                         .collection("request_response")
                         .whereEqualTo(FieldPath.documentId(),roomId)
@@ -147,7 +149,8 @@ public class UserListActivity extends AppCompatActivity {
                     }
                     else if(res.equals("decline"))
                         Toast.makeText(UserListActivity.this, "This user has declined your request", Toast.LENGTH_SHORT).show();
-                    else Toast.makeText(UserListActivity.this, "No response from this user", Toast.LENGTH_SHORT).show();
+                    else if(res.equals("no_response"))
+                        Toast.makeText(UserListActivity.this, "No response from this user", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -205,4 +208,9 @@ public class UserListActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        listener1.remove();
+    }
 }

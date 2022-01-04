@@ -36,7 +36,6 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-//        System.out.println("Hello");
         String receiverId = remoteMessage.getData().get("receiverId");
         String body = remoteMessage.getData().get("body");
         FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();

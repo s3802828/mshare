@@ -131,15 +131,19 @@ public class SongListActivity extends AppCompatActivity {
         if (songsAdapter.getSongList().equals("")) {
             Toast.makeText(SongListActivity.this, "Song list is empty. Select the song first!", Toast.LENGTH_SHORT).show();
         } else {
-            Map<String, String> data = new HashMap<String, String>();
+            Map<String, String> data = new HashMap<>();
 
             data.put("list", songsAdapter.getSongList());
             data.put("current_song","");
             data.put("host", firebaseAuth.getCurrentUser().getUid());
-            data.put("guest","");
             data.put("current_duration","");
+
             HashMap<String, String> res = new HashMap<>();
             res.put("response", "");
+            res.put("guest","");
+
+            HashMap<String, Boolean> pause = new HashMap<>();
+            pause.put("isPause", false);
 
 
             Toast.makeText(SongListActivity.this, "Setting up media player...", Toast.LENGTH_SHORT).show();
@@ -156,6 +160,16 @@ public class SongListActivity extends AppCompatActivity {
                                     startActivity(intent);
                                 }
                             });
+                    roomDocumentReference.collection("pause_status").document(roomDocumentReference.getId())
+                            .set(pause)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(@NonNull Void unused) {
+                                }
+                            });
+                    Intent intent = new Intent(SongListActivity.this, MediaPlayerActivity.class);
+                    intent.putExtra("room_id", roomDocumentReference.getId());
+                    startActivity(intent);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

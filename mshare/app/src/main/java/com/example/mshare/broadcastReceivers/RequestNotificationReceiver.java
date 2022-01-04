@@ -28,7 +28,6 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         String roomId = bundle.getString("room_id");
         System.out.println(bundle.containsKey("room_id"));
         if(!bundle.containsKey("accept")) {
-//            Toast.makeText(context, "No Response!", Toast.LENGTH_SHORT).show();
             db.collection("rooms").document(roomId)
                     .collection("request_response")
                     .document(roomId)
@@ -37,22 +36,12 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         else {
             boolean isAccept = bundle.getBoolean("accept");
             if(isAccept) {
-//                Toast.makeText(context, "Accept!", Toast.LENGTH_SHORT).show();
-                db.collection("rooms").document(roomId)
-                        .collection("request_response")
-                        .document(roomId)
-                        .update("response", "accept").addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(@NonNull Void unused) {
-                        Intent intent1 = new Intent(context, MediaPlayerActivity.class);
-                        intent1.putExtra("isSharingMode", true);
-                        intent1.putExtra("room_id", roomId);
-                        context.startActivity(intent1);
-                    }
-                });
+                Intent intent1 = new Intent(context, MediaPlayerActivity.class);
+                intent1.putExtra("isSharingMode", true);
+                intent1.putExtra("room_id", roomId);
+                context.startActivity(intent1);
             }
             else {
-//                Toast.makeText(context, "Decline!", Toast.LENGTH_SHORT).show();
                 db.collection("rooms").document(roomId)
                         .collection("request_response")
                         .document(roomId)

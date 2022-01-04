@@ -83,6 +83,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private boolean isSharingMode = false;
+    private boolean isHost = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,11 +112,16 @@ public class MediaPlayerActivity extends AppCompatActivity {
         if(intent.hasExtra("isSharingMode")) {
             isSharingMode = true;
         }
-        if(isSharingMode){
-            db.collection("rooms")
-                    .whereEqualTo(FieldPath.documentId(), roomId)
-                    .addSnapshotListener(eventListener);
-        }
+
+        db.collection("rooms")
+                .whereEqualTo(FieldPath.documentId(), roomId)
+                .addSnapshotListener(eventListener);
+
+        db.collection("rooms")
+                .document(roomId)
+                .collection("pause_status")
+                .whereEqualTo(FieldPath.documentId(), roomId)
+                .addSnapshotListener(eventListener1);
     }
 
     private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
@@ -135,6 +141,31 @@ public class MediaPlayerActivity extends AppCompatActivity {
                     }
                     assert currentDuration != null;
                     musicService.getPlayer().seekTo(Integer.parseInt(currentDuration));
+                    seekBarDuration.setMax(musicService.getTotalDuration());
+                    txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+                    songTitle.setText(musicService.getSongTitle());
+                    songArtist.setText(musicService.getSongArtist());
+                    Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
+                }
+            }
+        }
+    };
+
+    private final EventListener<QuerySnapshot> eventListener1 = (value, error) -> {
+        if (error != null) {
+            return;
+        }
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    boolean isPause = documentChange.getDocument().getBoolean("isPause");
+                    if (isPause) {
+                        musicService.pause();
+                        playBtn.setImageResource(R.drawable.play);
+                    } else {
+                        musicService.resume();
+                        playBtn.setImageResource(R.drawable.pause);
+                    }
                 }
             }
         }
@@ -187,7 +218,15 @@ public class MediaPlayerActivity extends AppCompatActivity {
                                 musicService.setSongs(songs);
                                 if(isSharingMode){
                                     db.collection("rooms").document(roomId)
-                                            .update("guest", firebaseAuth.getCurrentUser().getUid());
+                                            .collection("request_response")
+                                            .document(roomId)
+                                            .update("response", "accept", "guest", firebaseAuth.getCurrentUser().getUid())
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(@NonNull Void unused) {
+
+                                        }
+                                    });
                                 } else {
                                     try {
                                         musicService.playSong(currentPosition);
@@ -197,14 +236,14 @@ public class MediaPlayerActivity extends AppCompatActivity {
                                     updateCurrentSong();
                                 }
 
-                                    seekBarDuration.setMax(musicService.getTotalDuration());
-                                    txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
-                                    playBtn.setImageResource(R.drawable.pause);
-                                    songTitle.setText(musicService.getSongTitle());
-                                    songArtist.setText(musicService.getSongArtist());
+                                seekBarDuration.setMax(musicService.getTotalDuration());
+                                txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
+                                playBtn.setImageResource(R.drawable.pause);
+                                songTitle.setText(musicService.getSongTitle());
+                                songArtist.setText(musicService.getSongArtist());
 
-                                    Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
-                                    startSeekBar();
+                                Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
+                                startSeekBar();
                             } else {
                                 System.out.println("Service fail");
                             }
@@ -262,6 +301,9 @@ public class MediaPlayerActivity extends AppCompatActivity {
                     musicService.getPlayer().seekTo(progress);
 
                     txtDuration.setText(timeCoverter(musicService.getCurrentPosition()));
+                    if(isSharingMode) {
+                        updateCurrentDuration(musicService.getCurrentPosition());
+                    }
                 }
             }
 
@@ -311,9 +353,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 songArtist.setText(musicService.getSongArtist());
 
                 Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
-                updateCurrentSong();
                 musicService.setSongChanged();
-
             }
 
         }
@@ -324,12 +364,12 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
         if (musicService.getPlayer() != null && musicService.getPlayer().isPlaying()) {
             musicService.pause();
-
             playBtn.setImageResource(R.drawable.play);
+            updatePauseResume(true);
         } else {
             musicService.resume();
-
             playBtn.setImageResource(R.drawable.pause);
+            updatePauseResume(false);
         }
     }
 
@@ -368,11 +408,11 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
     public void updateCurrentSong() {
         db.collection("rooms").document(roomId)
-                .update("current_song",String.valueOf(musicService.getCurrentSongPosition()))
+                .update("current_song",String.valueOf(musicService.getCurrentSongPosition()), "current_duration", String.valueOf(musicService.getCurrentPosition()))
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Toast.makeText(MediaPlayerActivity.this,"Current Song: "+musicService.getSongTitle(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MediaPlayerActivity.this,"Current Song: "+ musicService.getSongTitle(), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -388,22 +428,32 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-//                        Toast.makeText(MediaPlayerActivity.this,"Current Song: "+musicService.getSongTitle(), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(MediaPlayerActivity.this, "Failed to update current song", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        db.collection("rooms").document(roomId).delete();
+    private void updatePauseResume(boolean isPause){
+        db.collection("rooms").document(roomId)
+                .collection("pause_status")
+                .document(roomId)
+                .update("isPause", isPause).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(@NonNull Void unused) {
+
+            }
+        });
     }
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        db.collection("rooms").document(roomId).delete();
+//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

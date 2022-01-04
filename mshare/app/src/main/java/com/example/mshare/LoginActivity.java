@@ -62,6 +62,9 @@ public class LoginActivity extends AppCompatActivity {
         emailInput = findViewById(R.id.email_login);
         passwordInput = findViewById(R.id.password_login);
 
+        FirebaseUser currentUser = mFirebaseAuth.getCurrentUser();
+        if(currentUser != null) goToMain();
+
         Button loginButton = findViewById(R.id.btnLogin);
         invalidEmail = findViewById(R.id.invalidEmail);
         invalidPassword = findViewById(R.id.invalidPassword);
@@ -116,8 +119,6 @@ public class LoginActivity extends AppCompatActivity {
         TextView signInButtonText = (TextView) signInButton.getChildAt(0);
         signInButtonText.setText("Continue with Google");
         signInButton.setOnClickListener(v -> signInWithGoogle());
-        FirebaseUser currentUser = mFirebaseAuth.getCurrentUser();
-        if(currentUser != null) goToMain();
 
     }
 

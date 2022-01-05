@@ -13,7 +13,11 @@ import com.example.mshare.MediaPlayerActivity;
 import com.example.mshare.SongListActivity;
 import com.example.mshare.services.FirebaseNotificationService;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Date;
+import java.util.HashMap;
 
 public class RequestNotificationReceiver extends BroadcastReceiver {
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -26,7 +30,9 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         notificationManager.cancel(0);
         Bundle bundle = intent.getExtras();
         String roomId = bundle.getString("room_id");
-        System.out.println(bundle.containsKey("room_id"));
+//        System.out.println(bundle.containsKey("room_id"));
+
+
         if(!bundle.containsKey("accept")) {
             db.collection("rooms").document(roomId)
                     .collection("request_response")

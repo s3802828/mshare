@@ -6,13 +6,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.RemoteInput;
 
 import com.example.mshare.ChatActivity;
 import com.example.mshare.R;
+import com.example.mshare.broadcastReceivers.ReplyNotificationReceiver;
 import com.example.mshare.broadcastReceivers.RequestNotificationReceiver;
 import com.example.mshare.models.User;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -122,10 +125,20 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
             channel1.setDescription("This is Request Message Notification Channel");
             notificationManager.createNotificationChannel(channel1);
         }
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String senderId = remoteMessage.getData().get("senderId");
-        Intent intent = new Intent(this, ChatActivity.class);
+
+        //intent without reply
+        Intent intent = new Intent(this, ReplyNotificationReceiver.class);
+        intent.putExtra("noReply",true);
+        //intent for reply
+        Intent replyIntent = new Intent(this, ReplyNotificationReceiver.class);
+
+
+        RemoteInput remoteInput = new RemoteInput.Builder("key_reply").build();
+
+
+
         db.collection("users").document(senderId).get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
@@ -135,9 +148,25 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         user.setId(senderId);
                         String body = remoteMessage.getData().get("body");
                         user.setName(senderName);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        Integer notiId = 101;
+                        String tag = "TAG";
                         intent.putExtra("User", user);
 
+                        replyIntent.putExtra("senderId", remoteMessage.getData().get("receiverId"));
+                        replyIntent.putExtra("receiverId", remoteMessage.getData().get("senderId"));
+                        replyIntent.putExtra("receiverName", senderName);
+
+                        PendingIntent pendingIntent = PendingIntent
+                                .getBroadcast(FirebaseNotificationService.this, 300, intent,PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent pendingReplyIntent = PendingIntent
+                                .getBroadcast(FirebaseNotificationService.this, 400, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                        NotificationCompat.Action goToChatAction =
+                                new NotificationCompat.Action.Builder(null,"VIEW", pendingIntent)
+                                        .build();
+                        NotificationCompat.Action replyAction =
+                                new NotificationCompat.Action.Builder(null, "REPLY", pendingReplyIntent)
+                                        .addRemoteInput(remoteInput).build();
                         Notification notification = new NotificationCompat.Builder(FirebaseNotificationService.this,
                                 "message_notification")
                                 .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -145,10 +174,12 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                                 .setContentText(body)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                .setContentIntent(PendingIntent.getActivity(FirebaseNotificationService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT))
                                 .setAutoCancel(true)
+                                .addAction(goToChatAction)
+                                .addAction(replyAction)
                                 .build();
-                        notificationManager.notify(1, notification);
+                        notificationManager.notify(101, notification);
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

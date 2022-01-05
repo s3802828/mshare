@@ -125,8 +125,9 @@ public class ChatActivity extends AppCompatActivity {
         }
         //notification
 
-        sendMessageRequestNotification(receiver.getId(), content);
+        sendMessageRequestNotification(receiver, content);
     }
+
 
 
 
@@ -226,9 +227,9 @@ public class ChatActivity extends AppCompatActivity {
                 }));
     }
 
-    private void sendMessageRequestNotification(String receiverId, String content) {
+    private void sendMessageRequestNotification(User receiver, String content) {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        database.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        database.collection("users").document(receiver.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 String token = task.getResult().getString("token");
@@ -237,7 +238,7 @@ public class ChatActivity extends AppCompatActivity {
                     return;
                 }
                 assert currentUser != null;
-                Data data = new Data(currentUser.getUid(), null, content, null, receiverId);
+                Data data = new Data(currentUser.getUid(), null, content, receiver.getName(), receiver.getId());
                 Sender sender = new Sender(data, token);
                 apiService.sendNotification(sender)
                         .enqueue(new Callback<NotificationResponse>() {

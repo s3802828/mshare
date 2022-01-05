@@ -33,6 +33,10 @@
             android:name=".broadcastReceivers.RequestNotificationReceiver"
             android:enabled="true"
             android:exported="true" />
+        <receiver
+            android:name=".broadcastReceivers.ReplyNotificationReceiver"
+            android:enabled="true"
+            android:exported="true" />
 
         <service
             android:name=".services.FirebaseNotificationService"

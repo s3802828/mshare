@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MediaPlayerActivity">
+    tools:context=".MediaPlayerActivity"
+    android:background="@drawable/background">
 
     <ImageView
         android:id="@+id/imageCoverMedia"
@@ -13,6 +14,8 @@
         android:layout_margin="10dp"
         android:layout_marginBottom="12dp"
         android:scaleType="fitCenter"
+        android:background="@color/white"
+        android:padding="5dp"
         app:layout_constraintBottom_toTopOf="@+id/textSong"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -76,6 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginBottom="4dp"
+        android:textColor="@color/white"
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/seekBarDuration"
         app:layout_constraintStart_toStartOf="parent" />
@@ -87,6 +91,7 @@
         android:layout_marginStart="4dp"
         android:layout_marginBottom="4dp"
         android:text="TextView"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/seekBarDuration"
         app:layout_constraintStart_toEndOf="@+id/textView" />
 
@@ -97,6 +102,7 @@
         android:layout_marginStart="4dp"
         android:layout_marginBottom="4dp"
         android:text="/"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/seekBarDuration"
         app:layout_constraintStart_toEndOf="@+id/textViewDuration" />
 
@@ -106,6 +112,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="300dp"
         android:text="TextView"
+        android:textColor="@color/white"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -117,29 +124,32 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         android:textSize="20sp"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/textViewTotalDuration"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textSong"
         app:layout_constraintVertical_bias="0.461" />
 
-    <Button
+    <android.widget.Button
         android:id="@+id/share_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/share"
+        android:background="@drawable/border"
+        android:textColor="@color/white"
         android:onClick="onShare"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton" />
 
-    <Button
+    <android.widget.Button
         android:id="@+id/end_share_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/end_sharing"
-        android:backgroundTint="@color/red"
+        android:background="@color/red"
         android:onClick="onEndShare"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

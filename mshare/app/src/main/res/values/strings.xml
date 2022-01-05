@@ -17,4 +17,8 @@
     <string name="chats">Chats</string>
     <string name="share">SHARE</string>
     <string name="end_sharing">END SHARING</string>
+    <string name="profile">Profile</string>
+    <string name="user_name">User Name</string>
+    <string name="user_email">User Email</string>
+    <string name="search_song">Search Song</string>
 </resources>

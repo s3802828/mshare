@@ -4,31 +4,49 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SongListActivity">
+    tools:context=".SongListActivity"
+    android:background="@drawable/background">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/songRecycler"
-        android:layout_width="413dp"
-        android:layout_height="467dp"
+        android:layout_width="410dp"
+        android:layout_height="517dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchViewSong" />
+        app:layout_constraintTop_toBottomOf="@+id/searchViewGone" />
 
-    <Button
+<!--        <Button-->
+<!--        android:id="@+id/toUserList"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:onClick="toUserList"-->
+<!--        android:text="Users"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.501"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/button_play" />-->
+
+    <android.widget.Button
         android:id="@+id/button_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="Play"
+        android:background="@drawable/border"
         android:onClick="playSong"
+        android:text="Play"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/songRecycler" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchViewSong"
-        android:layout_width="409dp"
-        android:layout_height="51dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchViewGone"
+            android:layout_width="409dp"
+            android:layout_height="51dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="invisible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignUpActivity">
+    tools:context=".SignUpActivity"
+    android:background="@drawable/background">
 
     <TextView
         android:id="@+id/signUp"
@@ -14,7 +15,8 @@
         android:layout_above="@+id/name_signup_group"
         android:layout_marginBottom="30dp"
         android:text="@string/signup"
-        android:textSize="48sp" />
+        android:textSize="48sp"
+        android:textColor="@color/white"/>
 
     <LinearLayout
         android:id="@+id/name_signup_group"
@@ -22,7 +24,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/email_signup_group"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:paddingHorizontal="5dp"
+        android:background="@drawable/border">
 
         <EditText
             android:id="@+id/name_signup"
@@ -30,14 +34,16 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="textPersonName"
-            android:hint="@string/name" />
+            android:hint="@string/name"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"/>
 
         <TextView
             android:id="@+id/invalidName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:textColor="@color/red" />
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <LinearLayout
@@ -47,7 +53,9 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/password_signup_group"
         android:layout_marginVertical="10dp"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:paddingHorizontal="5dp"
+        android:background="@drawable/border">
 
         <EditText
             android:id="@+id/email_signup"
@@ -55,14 +63,16 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="textEmailAddress"
-            android:hint="@string/username" />
+            android:hint="@string/username"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"/>
 
         <TextView
             android:id="@+id/invalidEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:textColor="@color/red" />
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <LinearLayout
@@ -71,7 +81,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:layout_marginVertical="10dp">
+        android:layout_marginVertical="10dp"
+        android:paddingHorizontal="5dp"
+        android:background="@drawable/border">
 
         <EditText
             android:id="@+id/password_signup"
@@ -79,14 +91,16 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="textPassword"
-            android:hint="@string/password"/>
+            android:hint="@string/password"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"/>
 
         <TextView
             android:id="@+id/invalidPassword"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:textColor="@color/red" />
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <LinearLayout
@@ -96,7 +110,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/password_signup_group"
         android:layout_centerHorizontal="true"
-        android:layout_marginVertical="10dp">
+        android:layout_marginVertical="10dp"
+        android:paddingHorizontal="5dp"
+        android:background="@drawable/border">
 
         <EditText
             android:id="@+id/password_confirm_signup"
@@ -104,14 +120,16 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="textPassword"
-            android:hint="@string/password_confirm"/>
+            android:hint="@string/password_confirm"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"/>
 
         <TextView
             android:id="@+id/invalidPasswordConfirm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:textColor="@color/red" />
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <TextView
@@ -121,15 +139,20 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginVertical="10dp"
-        android:textStyle="italic"
-        android:text="@string/already_has_account_sign_in"/>
+        android:textStyle="italic|bold"
+        android:textColor="@color/white"
+        android:text="@string/already_has_account_sign_in"
+        android:textSize="18sp"/>
 
-    <Button
+    <android.widget.Button
         android:id="@+id/btnSignUp"
-        android:layout_width="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/toLogin"
+        android:layout_width="221dp"
         android:layout_height="wrap_content"
-        android:text="@string/signup" />
+        android:layout_below="@+id/toLogin"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/border"
+        android:text="@string/signup"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
 
 </RelativeLayout>

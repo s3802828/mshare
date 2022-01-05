@@ -4,6 +4,7 @@ package com.example.mshare;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuItemCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -68,21 +69,21 @@ public class SongListActivity extends AppCompatActivity {
         recyclerView.setAdapter(songsAdapter);
         EventChangeListener();
 
-        searchSong = findViewById(R.id.searchViewSong);
-
-        searchSong.setQueryHint("Enter song name...");
-        searchSong.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                songsAdapter.getFilter().filter(newText);
-                return false;
-            }
-        });
+//        searchSong = findViewById(R.id.searchViewSong);
+//
+//        searchSong.setQueryHint("Enter song name...");
+//        searchSong.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                songsAdapter.getFilter().filter(newText);
+//                return false;
+//            }
+//        });
 
     }
 
@@ -184,6 +185,22 @@ public class SongListActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.tool_bar_main, menu);
+        MenuItem searchViewItem = menu.findItem(R.id.searchViewSong);
+        searchSong = (SearchView) MenuItemCompat.getActionView(searchViewItem);
+
+        searchSong.setQueryHint("Enter song name...");
+        searchSong.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                songsAdapter.getFilter().filter(newText);
+                return false;
+            }
+        });
         return true;
     }
 
@@ -208,5 +225,9 @@ public class SongListActivity extends AppCompatActivity {
     }
     private void updateUserStatus(String status) {
         db.collection("users").document(firebaseAuth.getCurrentUser().getUid()).update("onlineStatus", status);
+    }
+    public void toUserList(View v){
+        Intent intent = new Intent(SongListActivity.this, UserListActivity.class);
+        startActivity(intent);
     }
 }

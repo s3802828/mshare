@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,6 +39,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -54,6 +56,7 @@ public class UserListActivity extends AppCompatActivity {
     private final ArrayList<String> userNames = new ArrayList<>();
     private final ArrayList<String> userIds = new ArrayList<>();
     private final ArrayList<String> avatars = new ArrayList<>();
+    private final ArrayList<String> onlineStatuses = new ArrayList<>();
     private APIService apiService;
     private String roomId;
     private ListenerRegistration listener1;
@@ -67,7 +70,9 @@ public class UserListActivity extends AppCompatActivity {
         assert firebaseUser != null;
         Intent intent = getIntent();
         roomId = intent.getExtras().getString("room_id");
-        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        db.collection("users")
+                .orderBy("onlineStatus", Query.Direction.DESCENDING)
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 for (QueryDocumentSnapshot ds:task.getResult()) {
@@ -75,6 +80,7 @@ public class UserListActivity extends AppCompatActivity {
                         userNames.add(ds.getString("name"));
                         avatars.add(ds.getString("avatar"));
                         userIds.add(ds.getId());
+                        onlineStatuses.add(ds.getString("onlineStatus"));
                     }
                 }
                 ListView userList = findViewById(R.id.user_listView);
@@ -88,6 +94,12 @@ public class UserListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
+        listener1 = db.collection("rooms")
+                .document(roomId)
+                .collection("request_response")
+                .whereEqualTo(FieldPath.documentId(),roomId)
+                .addSnapshotListener(eventListener)
+        ;
 
 
     }
@@ -117,13 +129,6 @@ public class UserListActivity extends AppCompatActivity {
 
                             }
                         });
-//
-                listener1 = db.collection("rooms")
-                        .document(roomId)
-                        .collection("request_response")
-                        .whereEqualTo(FieldPath.documentId(),roomId)
-                        .addSnapshotListener(eventListener)
-                        ;
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -185,6 +190,7 @@ public class UserListActivity extends AppCompatActivity {
             this.userNames = (ArrayList<String>) objects;
         }
 
+        @SuppressLint("SetTextI18n")
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -197,11 +203,24 @@ public class UserListActivity extends AppCompatActivity {
             TextView nameView = rowLayout.findViewById(R.id.userName);
             nameView.setText(userNames.get(position));
 
+            TextView onlineStatusView = rowLayout.findViewById(R.id.onlineStatus);
+            if(onlineStatuses.get(position).equals("Online")){
+                onlineStatusView.setText("Online");
+                onlineStatusView.setTextColor(Color.GREEN);
+            } else {
+                onlineStatusView.setText("Offline");
+                onlineStatusView.setTextColor(Color.DKGRAY);
+            }
+
             Button sendRequestButton = rowLayout.findViewById(R.id.send_request_btn);
             sendRequestButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    sendRequestNotification(userIds.get(position));
+                    {   if(onlineStatuses.get(position).equals("Online"))
+                            sendRequestNotification(userIds.get(position));
+                        else Toast.makeText(UserListActivity.this,
+                                "CANNOT SEND REQUEST: This user is currently offline", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
             return rowLayout;

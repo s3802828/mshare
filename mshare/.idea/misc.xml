@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android/mshare/app/src/main/res/layout/activity_chat.xml" value="0.1388888888888889" />
+        <entry key="..\:/Android/mshare/app/src/main/res/layout/activity_conversation.xml" value="0.371875" />
+        <entry key="..\:/Android/mshare/app/src/main/res/layout/conversation_container.xml" value="0.371875" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/chat_content_bg.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/chat_input_bg.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/ic_goback.xml" value="0.21927083333333333" />

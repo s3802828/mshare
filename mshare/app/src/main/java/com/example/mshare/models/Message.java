@@ -1,5 +1,7 @@
 package com.example.mshare.models;
 
+import com.google.firebase.Timestamp;
+
 import java.util.Date;
 
 public class Message {

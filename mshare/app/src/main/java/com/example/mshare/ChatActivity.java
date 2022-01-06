@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.mshare.adapters.MessageAdapter;
 import com.example.mshare.databinding.ActivityChatBinding;
 import com.example.mshare.interfaces.APIService;
@@ -66,7 +67,7 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(activityChatBinding.getRoot());
         initialize();
-        realTimeListenChat();
+        addRealTimeDocumentChangeListener();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
 
@@ -82,7 +83,9 @@ public class ChatActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
                         String name = documentSnapshot.getString("name");
+                        String userAvatar = documentSnapshot.getString("avatar");
                         activityChatBinding.userName.setText(name);
+                        Glide.with(ChatActivity.this).load(userAvatar).into(activityChatBinding.userAvatar);
                     }
                 });
 
@@ -123,30 +126,11 @@ public class ChatActivity extends AppCompatActivity {
                     "https://firebasestorage.googleapis.com/v0/b/androiddev-cbbc9.appspot.com/o/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png?alt=media&token=4808957a-e786-4f03-b8c1-800d50d93b7d");
             documentReference.set(lastMessage);
         }
-        //notification
-
+        //send notification
         sendMessageRequestNotification(receiver, content);
     }
 
-
-
-
-
-    private void realTimeListenChat() {
-        database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
-                .collection("messages")
-                .whereEqualTo("senderId", firebaseAuth.getUid())
-                .whereEqualTo("receiverId", receiver.getId())
-                .addSnapshotListener(eventListener);
-        database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
-                .collection("messages")
-                .whereEqualTo("senderId", receiver.getId())
-                .whereEqualTo("receiverId", firebaseAuth.getUid())
-                .addSnapshotListener(eventListener);
-    }
-
+    //Handle real time document change during Chat
     private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
         if (error != null) {
             return;
@@ -166,6 +150,7 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }
             }
+            //Sort the message List and notify change to the adapter
             Collections.sort(messageList, Comparator.comparing(a -> a.date));
             if (count == 0) {
                 messageAdapter.notifyDataSetChanged();
@@ -173,9 +158,29 @@ public class ChatActivity extends AppCompatActivity {
                 messageAdapter.notifyItemRangeInserted(messageList.size(), messageList.size());
                 activityChatBinding.chatAllMessagesRecyclerView.smoothScrollToPosition(messageList.size() - 1);
             }
+            //Show all messages to chat screen
             activityChatBinding.chatAllMessagesRecyclerView.setVisibility(View.VISIBLE);
         }
     };
+
+
+    private void addRealTimeDocumentChangeListener() {
+        //add eventListener to conversation document of current users
+        database.collection("conversation")
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
+                .collection("messages")
+                .whereEqualTo("senderId", firebaseAuth.getUid())
+                .whereEqualTo("receiverId", receiver.getId())
+                .addSnapshotListener(eventListener);
+        database.collection("conversation")
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
+                .collection("messages")
+                .whereEqualTo("senderId", receiver.getId())
+                .whereEqualTo("receiverId", firebaseAuth.getUid())
+                .addSnapshotListener(eventListener);
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

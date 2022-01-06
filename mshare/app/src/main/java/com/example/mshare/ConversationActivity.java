@@ -27,6 +27,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity implements ConversationListener {
@@ -60,6 +61,8 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
         if (value != null) {
             for (DocumentChange documentChange : value.getDocumentChanges()) {
                 if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                    System.out.println("ADDED");
+
                     //delete the opposite recent message
                     for(int i = 0; i < conversationList.size(); i++) {
                         String senderId = documentChange.getDocument().getString("lastMessage_senderId");
@@ -76,7 +79,6 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                     message.senderId = senderId;
                     message.receiverId = receiverId;
                     message.conversationAvatar = documentChange.getDocument().getString("lastMessage_receiverAvatar");
-
                     if (firebaseAuth.getUid().equals(senderId)) {
                         message.content = "You: " + documentChange.getDocument().getString("lastMessage");
                         message.conversationName = documentChange.getDocument().getString("lastMessage_receiverName");
@@ -89,6 +91,7 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                     conversationList.add(message);
                 }
                 else if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    System.out.println("MODIFIED");
                     //find the old message in the list
                     for (int i = 0; i < conversationList.size(); i++) {
                         String senderId = documentChange.getDocument().getString("lastMessage_senderId");
@@ -96,20 +99,21 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                         if (conversationList.get(i).senderId.equals(senderId)
                                 && conversationList.get(i).receiverId.equals(receiverId)) {
                             conversationList.get(i).content = documentChange.getDocument().getString("lastMessage");
-                            conversationList.get(i).timestamp = convertDateFormat(documentChange.getDocument().getDate("timestamp"));
+                            conversationList.get(i).date = documentChange.getDocument().getDate("timestamp");
                             break;
                         }
                     }
                 }
             }
             //Sort the list of conversation base on timestamp then update the conversation adapter
-            Collections.sort(conversationList, (a, b) -> b.date.compareTo(a.date));
+            Collections.sort(conversationList, (a,b) -> b.date.compareTo(a.date));
             conversationAdapter.notifyDataSetChanged();
             activityConversationBinding.conversationRecyclerView.smoothScrollToPosition(0);
             activityConversationBinding.conversationRecyclerView.setVisibility(View.VISIBLE);
 
         }
     };
+
 
     private void addListenToConversation() {
         database.collection("conversation")

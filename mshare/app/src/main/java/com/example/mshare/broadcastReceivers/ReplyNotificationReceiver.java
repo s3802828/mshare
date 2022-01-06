@@ -34,7 +34,6 @@ public class ReplyNotificationReceiver extends BroadcastReceiver {
         Bundle bundle = intent.getExtras();
         Boolean noReply = bundle.getBoolean("noReply");
         System.out.println(noReply);
-
         if (noReply) {
             Intent chatIntent = new Intent(context, ChatActivity.class);
             chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

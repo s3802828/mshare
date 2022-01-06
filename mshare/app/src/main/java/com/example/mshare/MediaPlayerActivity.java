@@ -13,10 +13,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,8 +27,11 @@ import com.bumptech.glide.Glide;
 import com.example.mshare.models.Song;
 import com.example.mshare.models.User;
 import com.example.mshare.services.MusicService;
+import com.example.mshare.utilClasses.ApplicationStatus;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
@@ -59,8 +64,10 @@ public class MediaPlayerActivity extends AppCompatActivity {
     private String roomId;
     private String currentSongId;
     private int currentPosition = 0;
-    private Button shareButton, endShareButton;
+    private Button shareButton;
+    private LinearLayout sharingLayout;
     private Thread thread;
+    private String hostId, guestId;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -106,7 +113,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
         songArtist = (TextView) findViewById(R.id.textArtist);
         songCover = (ImageView) findViewById(R.id.imageCoverMedia);
         shareButton = findViewById(R.id.share_btn);
-        endShareButton = findViewById(R.id.end_share_btn);
+        sharingLayout = findViewById(R.id.share_layout);
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
@@ -118,7 +125,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
         if(intent.hasExtra("isSharingMode")) {
             isSharingMode = true;
             shareButton.setVisibility(View.GONE);
-            endShareButton.setVisibility(View.VISIBLE);
+            sharingLayout.setVisibility(View.VISIBLE);
         }
 
         listener1 = db.collection("rooms")
@@ -194,16 +201,13 @@ public class MediaPlayerActivity extends AppCompatActivity {
             for (DocumentChange documentChange : value.getDocumentChanges()) {
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     res = documentChange.getDocument().getString("response");
+                    guestId = documentChange.getDocument().getString("guest");
                     assert res != null;
                     if(res.equals("")){
                         isSharingMode = false;
                         shareButton.setVisibility(View.VISIBLE);
-                        endShareButton.setVisibility(View.GONE);
-                        String guest_id = documentChange.getDocument().getString("guest");
-                        if(firebaseAuth.getCurrentUser().getUid().equals(guest_id)) {
-                            if(musicService.getPlayer() != null){
-                                musicService.getPlayer().reset();
-                            }
+                        sharingLayout.setVisibility(View.GONE);
+                        if(firebaseAuth.getCurrentUser().getUid().equals(guestId)) {
                             finish();
                         }
                     }
@@ -238,6 +242,30 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
     }
 
+    public void goToChat(View v){
+        String receiverId;
+        if(firebaseAuth.getCurrentUser().getUid().equals(hostId)){
+            receiverId = guestId;
+        } else receiverId = hostId;
+        db.collection("users").document(receiverId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                User receiver = new User();
+                receiver.setId(receiverId);
+                receiver.setName(documentSnapshot.getString("name"));
+                receiver.setAvatar(documentSnapshot.getString("avatar"));
+                Intent intent = new Intent(MediaPlayerActivity.this, ChatActivity.class);
+                intent.putExtra("User", receiver);
+                startActivity(intent);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+            }
+        });
+    }
+
     private void startMusicPlayer() {
         DocumentReference docRef = db.collection("rooms").document(roomId);
         docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -245,10 +273,8 @@ public class MediaPlayerActivity extends AppCompatActivity {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if(documentSnapshot.exists()) {
-
+                    hostId = documentSnapshot.getString("host");
                     String[] songId = documentSnapshot.getString("list").toString().split(",");
-                    System.out.println();
-
                     songListId.addAll(Arrays.asList(songId));
 
                     db.collection("songs").whereIn(FieldPath.documentId(), songListId).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -274,12 +300,11 @@ public class MediaPlayerActivity extends AppCompatActivity {
                                             .collection("request_response")
                                             .document(roomId)
                                             .update("response", "accept", "guest", firebaseAuth.getCurrentUser().getUid())
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(@NonNull Void unused) {
-
-                                        }
-                                    });
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                }
+                                            });
                                 } else {
                                     try {
                                         musicService.playSong(currentPosition);
@@ -389,7 +414,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 }
             }
         });
-       thread.start();
+      thread.start();
     }
 
 
@@ -504,12 +529,40 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if(musicService.getPlayer() != null){
+            musicService.getPlayer().reset();
+        }
+        if(firebaseAuth.getCurrentUser().getUid().equals(hostId)){
+            db.collection("rooms").document(roomId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(@NonNull Void unused) {
+                    listener1.remove();
+                    listener2.remove();
+                    listener3.remove();
+                    thread.interrupt();
+                    handler.removeCallbacks(thread);
+                }
+            });
+        } else{
+            listener1.remove();
+            listener2.remove();
+            listener3.remove();
+            thread.interrupt();
+            handler.removeCallbacks(thread);
+        }
         super.onDestroy();
-        listener1.remove();
-        listener2.remove();
-        listener3.remove();
-        thread.interrupt();
-        handler.removeCallbacks(thread);
+    }
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            if(!isSharingMode) {
+                finish();
+            }
+            else Toast.makeText(MediaPlayerActivity.this, "You have to end sharing first", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     @Override
@@ -520,7 +573,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 isSharingMode = true;
                 updateCurrentDuration(musicService.getCurrentPosition());
                 shareButton.setVisibility(View.GONE);
-                endShareButton.setVisibility(View.VISIBLE);
+                sharingLayout.setVisibility(View.VISIBLE);
             }
         }
     }

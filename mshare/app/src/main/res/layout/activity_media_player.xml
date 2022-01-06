@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MediaPlayerActivity"
-    android:background="@drawable/background">
+    android:background="@drawable/background"
+    tools:context=".MediaPlayerActivity">
 
     <ImageView
         android:id="@+id/imageCoverMedia"
@@ -13,9 +13,9 @@
         android:layout_height="200dp"
         android:layout_margin="10dp"
         android:layout_marginBottom="12dp"
-        android:scaleType="fitCenter"
         android:background="@color/white"
         android:padding="5dp"
+        android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/textSong"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -79,8 +79,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginBottom="4dp"
+        android:text="@string/duration"
         android:textColor="@color/white"
-        android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/seekBarDuration"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -90,7 +90,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginBottom="4dp"
-        android:text="TextView"
+        android:text="@string/duration"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/seekBarDuration"
         app:layout_constraintStart_toEndOf="@+id/textView" />
@@ -111,7 +111,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="300dp"
-        android:text="TextView"
         android:textColor="@color/white"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -122,9 +121,8 @@
         android:id="@+id/textArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
-        android:textSize="20sp"
         android:textColor="@color/white"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/textViewTotalDuration"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -135,26 +133,50 @@
         android:id="@+id/share_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/share"
         android:background="@drawable/border"
-        android:textColor="@color/white"
         android:onClick="onShare"
+        android:text="@string/share"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton" />
 
-    <android.widget.Button
-        android:id="@+id/end_share_btn"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/share_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/end_sharing"
-        android:background="@color/red"
-        android:onClick="onEndShare"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton"
-        android:visibility="gone"/>
+        tools:layout_editor_absoluteX="0dp"
+        android:gravity="center_horizontal"
+        android:visibility="gone">
+
+        <android.widget.Button
+            android:id="@+id/end_share_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border"
+            android:onClick="onEndShare"
+            android:text="@string/end_sharing"
+            android:textColor="@color/white"
+            android:visibility="visible"
+            android:padding="10dp"/>
+
+        <android.widget.Button
+            android:id="@+id/chat_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/border"
+            android:drawableStart="@drawable/ic_message"
+            android:drawablePadding="2dp"
+            android:onClick="goToChat"
+            android:text="@string/open_chat"
+            android:textColor="@color/white"
+            android:padding="10dp"/>
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

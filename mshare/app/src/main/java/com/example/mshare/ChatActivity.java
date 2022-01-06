@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.mshare.adapters.MessageAdapter;
 import com.example.mshare.databinding.ActivityChatBinding;
 import com.example.mshare.interfaces.APIService;
@@ -66,7 +67,7 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(activityChatBinding.getRoot());
         initialize();
-        realTimeListenChat();
+        addRealTimeDocumentChangeListener();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
 
@@ -77,14 +78,8 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding.chatAllMessagesRecyclerView.setAdapter(messageAdapter);
         database = FirebaseFirestore.getInstance();
         receiver = (User) getIntent().getSerializableExtra("User");
-        database.collection("users").document(receiver.getId()).get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
-                        String name = documentSnapshot.getString("name");
-                        activityChatBinding.userName.setText(name);
-                    }
-                });
+        activityChatBinding.userName.setText(receiver.getName());
+        Glide.with(ChatActivity.this).load(receiver.getAvatar()).into(activityChatBinding.userAvatar);
 
         backButton = findViewById(R.id.backBtn);
         backButton.setOnClickListener(v -> onBackPressed());
@@ -119,33 +114,14 @@ public class ChatActivity extends AppCompatActivity {
             lastMessage.put("lastMessage_receiverName", receiver.getName());
             lastMessage.put("lastMessage", content);
             lastMessage.put("timestamp", new Date());
-            lastMessage.put("lastMessage_receiverAvatar",
-                    "https://firebasestorage.googleapis.com/v0/b/androiddev-cbbc9.appspot.com/o/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png?alt=media&token=4808957a-e786-4f03-b8c1-800d50d93b7d");
+            lastMessage.put("lastMessage_receiverAvatar", receiver.getAvatar());
             documentReference.set(lastMessage);
         }
-        //notification
-
-        sendMessageRequestNotification(receiver.getId(), content);
+        //send notification
+        sendMessageRequestNotification(receiver, content);
     }
 
-
-
-
-    private void realTimeListenChat() {
-        database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
-                .collection("messages")
-                .whereEqualTo("senderId", firebaseAuth.getUid())
-                .whereEqualTo("receiverId", receiver.getId())
-                .addSnapshotListener(eventListener);
-        database.collection("conversation")
-                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
-                .collection("messages")
-                .whereEqualTo("senderId", receiver.getId())
-                .whereEqualTo("receiverId", firebaseAuth.getUid())
-                .addSnapshotListener(eventListener);
-    }
-
+    //Handle real time document change during Chat
     private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
         if (error != null) {
             return;
@@ -165,6 +141,7 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }
             }
+            //Sort the message List and notify change to the adapter
             Collections.sort(messageList, Comparator.comparing(a -> a.date));
             if (count == 0) {
                 messageAdapter.notifyDataSetChanged();
@@ -172,9 +149,29 @@ public class ChatActivity extends AppCompatActivity {
                 messageAdapter.notifyItemRangeInserted(messageList.size(), messageList.size());
                 activityChatBinding.chatAllMessagesRecyclerView.smoothScrollToPosition(messageList.size() - 1);
             }
+            //Show all messages to chat screen
             activityChatBinding.chatAllMessagesRecyclerView.setVisibility(View.VISIBLE);
         }
     };
+
+
+    private void addRealTimeDocumentChangeListener() {
+        //add eventListener to conversation document of current users
+        database.collection("conversation")
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
+                .collection("messages")
+                .whereEqualTo("senderId", firebaseAuth.getUid())
+                .whereEqualTo("receiverId", receiver.getId())
+                .addSnapshotListener(eventListener);
+        database.collection("conversation")
+                .document(generateConversationId(firebaseAuth.getUid(), receiver.getId()))
+                .collection("messages")
+                .whereEqualTo("senderId", receiver.getId())
+                .whereEqualTo("receiverId", firebaseAuth.getUid())
+                .addSnapshotListener(eventListener);
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -226,9 +223,9 @@ public class ChatActivity extends AppCompatActivity {
                 }));
     }
 
-    private void sendMessageRequestNotification(String receiverId, String content) {
+    private void sendMessageRequestNotification(User receiver, String content) {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        database.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        database.collection("users").document(receiver.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 String token = task.getResult().getString("token");
@@ -237,7 +234,7 @@ public class ChatActivity extends AppCompatActivity {
                     return;
                 }
                 assert currentUser != null;
-                Data data = new Data(currentUser.getUid(), null, content, null, receiverId);
+                Data data = new Data(currentUser.getUid(), null, content, receiver.getName(), receiver.getId());
                 Sender sender = new Sender(data, token);
                 apiService.sendNotification(sender)
                         .enqueue(new Callback<NotificationResponse>() {

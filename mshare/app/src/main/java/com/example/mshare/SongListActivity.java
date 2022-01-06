@@ -50,6 +50,16 @@ public class SongListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
+        Intent intent = getIntent();
+        if(intent != null){
+            if(intent.hasExtra("isSharingMode")){
+                String roomId = intent.getExtras().getString("room_id");
+                Intent intent1 = new Intent(this, MediaPlayerActivity.class);
+                intent1.putExtra("isSharingMode", true);
+                intent1.putExtra("room_id", roomId);
+                startActivity(intent1);
+            }
+        }
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
@@ -69,21 +79,6 @@ public class SongListActivity extends AppCompatActivity {
         recyclerView.setAdapter(songsAdapter);
         EventChangeListener();
 
-//        searchSong = findViewById(R.id.searchViewSong);
-//
-//        searchSong.setQueryHint("Enter song name...");
-//        searchSong.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                songsAdapter.getFilter().filter(newText);
-//                return false;
-//            }
-//        });
 
     }
 
@@ -230,4 +225,12 @@ public class SongListActivity extends AppCompatActivity {
         Intent intent = new Intent(SongListActivity.this, UserListActivity.class);
         startActivity(intent);
     }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if(requestCode ==500 && resultCode ==500){
+//            System.out.println("final back");
+//        }
+//    }
 }

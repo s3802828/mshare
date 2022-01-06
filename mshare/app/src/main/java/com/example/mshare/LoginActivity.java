@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mshare.models.User;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -58,6 +59,17 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Intent intent = getIntent();
+        if(intent != null){
+            if(intent.hasExtra("isSharingMode")){
+                String roomId = intent.getExtras().getString("room_id");
+                Intent intent1 = new Intent(this, SongListActivity.class);
+                intent1.putExtra("isSharingMode", true);
+                intent1.putExtra("room_id", roomId);
+                startActivityForResult(intent1, 200);
+            }
+        }
 
         emailInput = findViewById(R.id.email_login);
         passwordInput = findViewById(R.id.password_login);
@@ -119,7 +131,7 @@ public class LoginActivity extends AppCompatActivity {
         TextView signInButtonText = (TextView) signInButton.getChildAt(0);
         signInButtonText.setText("Continue with Google");
         signInButton.setOnClickListener(v -> signInWithGoogle());
-
+        ApplicationStatus.setIsApplicationRunning(true);
     }
 
     private void signInWithGoogle() {
@@ -273,5 +285,11 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "FAIL 1", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ApplicationStatus.setIsApplicationRunning(false);
     }
 }

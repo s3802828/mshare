@@ -1,17 +1,22 @@
 package com.example.mshare.broadcastReceivers;
 
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
+import com.example.mshare.LoginActivity;
 import com.example.mshare.MediaPlayerActivity;
 import com.example.mshare.SongListActivity;
 import com.example.mshare.services.FirebaseNotificationService;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -36,7 +41,12 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         else {
             boolean isAccept = bundle.getBoolean("accept");
             if(isAccept) {
-                Intent intent1 = new Intent(context, MediaPlayerActivity.class);
+                Intent intent1;
+                if(!ApplicationStatus.isIsApplicationRunning()){
+                    intent1 = new Intent(context, LoginActivity.class);
+                    intent1.setFlags(Intent.FLAG_FROM_BACKGROUND);
+                } else intent1 = new Intent(context, MediaPlayerActivity.class);
+                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent1.putExtra("isSharingMode", true);
                 intent1.putExtra("room_id", roomId);
                 context.startActivity(intent1);

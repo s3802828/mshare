@@ -21,4 +21,6 @@
     <string name="user_name">User Name</string>
     <string name="user_email">User Email</string>
     <string name="search_song">Search Song</string>
+    <string name="open_chat">Open Chat</string>
+    <string name="duration">-:--</string>
 </resources>

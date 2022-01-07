@@ -180,7 +180,7 @@ public class SongListActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.tool_bar_main, menu);
-        MenuItem searchViewItem = menu.findItem(R.id.searchViewSong);
+        MenuItem searchViewItem = menu.findItem(R.id.searchView);
         searchSong = (SearchView) MenuItemCompat.getActionView(searchViewItem);
 
         searchSong.setQueryHint("Enter song name...");
@@ -206,21 +206,16 @@ public class SongListActivity extends AppCompatActivity {
                 Intent intent = new Intent(SongListActivity.this, ConversationActivity.class);
                 startActivity(intent);
                 return true;
-            case R.id.logout:
-                updateUserStatus("Offline");
-                firebaseAuth.signOut();
-                LoginManager.getInstance().logOut();
-                Intent intent1 = new Intent(SongListActivity.this, LoginActivity.class);
-                setResult(200, intent1);
-                finish();
+            case R.id.profilePage:
+                Intent intent1 = new Intent(SongListActivity.this, ProfileActivity.class);
+                intent1.putExtra("userId", firebaseAuth.getCurrentUser().getUid());
+                startActivity(intent1);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-    private void updateUserStatus(String status) {
-        db.collection("users").document(firebaseAuth.getCurrentUser().getUid()).update("onlineStatus", status);
-    }
+
     public void toUserList(View v){
         Intent intent = new Intent(SongListActivity.this, UserListActivity.class);
         startActivity(intent);

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    tools:context=".EditFavoriteActivity">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/fav_song_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_song"/>
+        <TextView
+            android:id="@+id/fav_song"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/fav_song_icon"
+            android:text="@string/songs"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+        <LinearLayout
+            android:id="@+id/fav_song_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_below="@+id/fav_song"/>
+        <ImageButton
+            android:id="@+id/addSongFav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add"
+            android:layout_below="@+id/fav_song_edit"
+            android:onClick="onAddFavSongEdit"
+            android:background="@android:color/transparent"/>
+        <ImageView
+            android:id="@+id/artist_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_artist"
+            android:layout_below="@+id/addSongFav"/>
+
+        <TextView
+            android:id="@+id/artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/artist_icon"
+            android:layout_below="@+id/addSongFav"
+            android:text="@string/artists"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+        <LinearLayout
+            android:id="@+id/fav_artist_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_below="@+id/artist"/>
+        <ImageButton
+            android:id="@+id/addArtistFav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add"
+            android:layout_below="@+id/fav_artist_edit"
+            android:onClick="onAddFavArtistEdit"
+            android:background="@android:color/transparent"/>
+        <ImageView
+            android:id="@+id/genre_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_genre"
+            android:layout_below="@+id/addArtistFav"/>
+
+        <TextView
+            android:id="@+id/genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/genre_icon"
+            android:layout_below="@+id/addArtistFav"
+            android:text="@string/genre"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+    </RelativeLayout>
+</ScrollView>

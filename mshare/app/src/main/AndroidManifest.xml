@@ -11,10 +11,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MShare">
+        <activity
+            android:name=".EditFavoriteActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".broadcastReceivers.ReplyNotificationReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true" />
 
         <activity
             android:name=".ProfileActivity"

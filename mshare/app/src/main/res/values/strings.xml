@@ -20,7 +20,15 @@
     <string name="profile">Profile</string>
     <string name="user_name">User Name</string>
     <string name="user_email">User Email</string>
-    <string name="search_song">Search Song</string>
+    <string name="search">Search</string>
     <string name="open_chat">Open Chat</string>
     <string name="duration">-:--</string>
+    <string name="favorites">FAVORITES</string>
+    <string name="uploaded_songs">UPLOADED SONGS</string>
+    <string name="songs">SONGS</string>
+    <string name="artists">ARTISTS</string>
+    <string name="genre">GENRE</string>
+    <string name="enter_your_favorite_song_name">Enter Song Name</string>
+    <string name="enter_artist_of_song">Enter Song Artist</string>
+    <string name="enter_artist_name">Enter Artist Name</string>
 </resources>

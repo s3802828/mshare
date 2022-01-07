@@ -7,9 +7,11 @@
     tools:context=".ProfileActivity">
 
     <RelativeLayout
+        android:id="@+id/profilePart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/background">
+        android:background="@drawable/background"
+        android:paddingBottom="30dp">
 
         <ImageView
             android:id="@+id/avatar"
@@ -21,67 +23,214 @@
             android:padding="5dp"
             tools:srcCompat="@tools:sample/avatars" />
 
-        <ImageView
-            android:id="@+id/nameIcon"
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/avatar"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_user" />
+            android:layout_toEndOf="@+id/avatar">
 
-        <TextView
-            android:id="@+id/profileName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/nameIcon"
-            android:layout_marginVertical="15dp"
-            android:textColor="@color/black"
-            android:layout_marginStart="5dp"
-            android:textSize="16sp"
-            android:text="@string/user_name" />
+            <ImageView
+                android:id="@+id/nameIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                app:srcCompat="@drawable/ic_user" />
 
-        <TextView
-            android:id="@+id/userName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/nameIcon"
-            android:layout_toEndOf="@+id/avatar"
-            android:layout_marginBottom="15dp"
-            android:textSize="16sp"
-            android:textColor="@color/black"
-            android:text="TextView" />
+            <TextView
+                android:id="@+id/profileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/nameIcon"
+                android:text="@string/user_name"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/mailIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/avatar"
-            android:layout_below="@+id/userName"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_email" />
+            <TextView
+                android:id="@+id/userName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/nameIcon"
+                android:layout_marginBottom="15dp"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/profileEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/mailIcon"
-            android:layout_below="@+id/userName"
-            android:layout_marginVertical="15dp"
-            android:textColor="@color/black"
-            android:layout_marginStart="5dp"
-            android:textSize="16sp"
-            android:text="@string/user_email" />
+            <EditText
+                android:id="@+id/userNameEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/nameIcon"
+                android:layout_marginBottom="15dp"
+                android:inputType="text"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/userEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/mailIcon"
-            android:layout_toEndOf="@+id/avatar"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:text="TextView" />
+            <ImageView
+                android:id="@+id/mailIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/userName"
+                android:layout_marginVertical="15dp"
+                app:srcCompat="@drawable/ic_email" />
+
+            <TextView
+                android:id="@+id/profileEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/userName"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/mailIcon"
+                android:text="@string/user_email"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/userEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/mailIcon"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <android.widget.Button
+                android:id="@+id/logout"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_below="@id/userEmail"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/border"
+                android:onClick="onLogout"
+                android:text="@string/logout"
+                android:textColor="@color/white" />
+
+            <ImageButton
+                android:id="@+id/editName_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/profileName"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/ic_edit_profile"
+                tools:ignore="SpeakableTextPresentCheck" />
+
+        </RelativeLayout>
     </RelativeLayout>
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_below="@+id/profilePart">-->
+        <ImageView
+            android:id="@+id/fav_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_fav"
+            android:layout_below="@+id/profilePart"/>
+
+        <TextView
+            android:id="@+id/favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/fav_icon"
+            android:layout_below="@+id/profilePart"
+            android:text="@string/favorites"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+        <ImageButton
+            android:id="@+id/editFav_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/favorite"
+            android:onClick="editFav"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_edit_dark"
+            android:layout_below="@id/profilePart"/>
+        <ImageView
+            android:id="@+id/fav_song_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_song"
+            android:layout_below="@+id/fav_icon"/>
+
+        <TextView
+            android:id="@+id/fav_song"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/fav_song_icon"
+            android:layout_below="@+id/fav_icon"
+            android:text="@string/songs"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+        <ImageView
+            android:id="@+id/artist_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_artist"
+            android:layout_below="@+id/fav_song_icon"/>
+
+        <TextView
+            android:id="@+id/artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/fav_icon"
+            android:layout_below="@+id/fav_song_icon"
+            android:text="@string/artists"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+        <ImageView
+            android:id="@+id/genre_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_genre"
+            android:layout_below="@+id/artist_icon"/>
+
+        <TextView
+            android:id="@+id/genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/genre_icon"
+            android:layout_below="@+id/artist_icon"
+            android:text="@string/genre"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <ImageView
+            android:id="@+id/upload_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/genre_icon"
+            android:layout_marginVertical="15dp"
+            app:srcCompat="@drawable/ic_upload" />
+
+        <TextView
+            android:id="@+id/upload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/genre_icon"
+            android:layout_marginVertical="15dp"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@+id/upload_icon"
+            android:text="@string/uploaded_songs"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+    <!--    </ScrollView>-->
 
 
 </RelativeLayout>

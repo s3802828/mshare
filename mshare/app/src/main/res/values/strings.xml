@@ -31,4 +31,6 @@
     <string name="enter_your_favorite_song_name">Enter Song Name</string>
     <string name="enter_artist_of_song">Enter Song Artist</string>
     <string name="enter_artist_name">Enter Artist Name</string>
+    <string name="confirm">CONFIRM</string>
+    <string name="cancel">CANCEL</string>
 </resources>

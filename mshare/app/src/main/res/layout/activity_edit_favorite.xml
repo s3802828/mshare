@@ -91,6 +91,26 @@
             android:text="@string/genre"
             android:textColor="@color/black"
             android:textSize="20sp" />
+        <LinearLayout
+            android:id="@+id/fav_genre_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_below="@+id/genre"/>
+        <Button
+            android:id="@+id/confirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/fav_genre_edit"
+            android:onClick="update"
+            android:text="@string/confirm"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/confirm"
+            android:onClick="goBack"
+            android:text="@string/cancel"/>
 
     </RelativeLayout>
 </ScrollView>

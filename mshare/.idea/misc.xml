@@ -3,13 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/artist_border.xml" value="0.25" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/border.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/chat_content_bg.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/chat_input_bg.xml" value="0.1" />
+        <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/genre_border.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/ic_goback.xml" value="0.21927083333333333" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/ic_send_message.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/message_receive_container_bg.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/message_sent_container_bg.xml" value="0.1" />
+        <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/song_border.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/layout/activity_chat.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/layout/activity_conversation.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/layout/activity_edit_favorite.xml" value="0.4444444444444444" />

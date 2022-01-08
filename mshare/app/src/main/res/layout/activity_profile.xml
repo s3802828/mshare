@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/background"
-        android:paddingBottom="30dp">
+        android:paddingBottom="30dp"
+        android:paddingHorizontal="10dp">
 
         <ImageView
             android:id="@+id/avatar"
@@ -97,13 +98,14 @@
             <android.widget.Button
                 android:id="@+id/logout"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_below="@id/userEmail"
                 android:layout_centerHorizontal="true"
                 android:background="@drawable/border"
                 android:onClick="onLogout"
                 android:text="@string/logout"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:layout_marginTop="5dp"/>
 
             <ImageButton
                 android:id="@+id/editName_btn"
@@ -118,119 +120,198 @@
 
         </RelativeLayout>
     </RelativeLayout>
-<!--    <ScrollView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_below="@+id/profilePart">-->
-        <ImageView
-            android:id="@+id/fav_icon"
-            android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/profilePart">
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_fav"
-            android:layout_below="@+id/profilePart"/>
+            android:padding="10dp">
+            <ImageView
+                android:id="@+id/fav_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                app:srcCompat="@drawable/ic_fav"/>
 
-        <TextView
-            android:id="@+id/favorite"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/fav_icon"
-            android:layout_below="@+id/profilePart"
-            android:text="@string/favorites"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-        <ImageButton
-            android:id="@+id/editFav_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/favorite"
-            android:onClick="editFav"
-            android:background="@android:color/transparent"
-            app:srcCompat="@drawable/ic_edit_dark"
-            android:layout_below="@id/profilePart"/>
-        <ImageView
-            android:id="@+id/fav_song_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_song"
-            android:layout_below="@+id/fav_icon"/>
+            <TextView
+                android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/fav_icon"
+                android:text="@string/favorites"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+            <ImageButton
+                android:id="@+id/showFav_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/favorite"
+                android:onClick="showFav"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/ic_down"/>
+            <ImageButton
+                android:id="@+id/editFav_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/showFav_btn"
+                android:onClick="editFav"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/ic_edit_dark"/>
 
-        <TextView
-            android:id="@+id/fav_song"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/fav_song_icon"
-            android:layout_below="@+id/fav_icon"
-            android:text="@string/songs"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-        <ImageView
-            android:id="@+id/artist_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_artist"
-            android:layout_below="@+id/fav_song_icon"/>
+            <RelativeLayout
+                android:id="@+id/fav_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/fav_icon"
+                android:layout_marginHorizontal="20dp"
+                android:visibility="gone">
 
-        <TextView
-            android:id="@+id/artist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/fav_icon"
-            android:layout_below="@+id/fav_song_icon"
-            android:text="@string/artists"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-        <ImageView
-            android:id="@+id/genre_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_genre"
-            android:layout_below="@+id/artist_icon"/>
+                <ImageView
+                    android:id="@+id/fav_song_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="15dp"
+                    app:srcCompat="@drawable/ic_song" />
 
-        <TextView
-            android:id="@+id/genre"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/genre_icon"
-            android:layout_below="@+id/artist_icon"
-            android:text="@string/genre"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+                <TextView
+                    android:id="@+id/fav_song"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/fav_song_icon"
+                    android:text="@string/songs"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+                <LinearLayout
+                    android:id="@+id/fav_song_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_below="@id/fav_song"
+                    android:visibility="gone"/>
 
-        <ImageView
-            android:id="@+id/upload_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/genre_icon"
-            android:layout_marginVertical="15dp"
-            app:srcCompat="@drawable/ic_upload" />
+                <ImageButton
+                    android:id="@+id/showSong_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/fav_song"
+                    android:background="@android:color/transparent"
+                    android:onClick="showSong"
+                    app:srcCompat="@drawable/ic_down" />
 
-        <TextView
-            android:id="@+id/upload"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/genre_icon"
-            android:layout_marginVertical="15dp"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/upload_icon"
-            android:text="@string/uploaded_songs"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+                <ImageView
+                    android:id="@+id/artist_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_song_group"
+                    android:layout_marginVertical="15dp"
+                    app:srcCompat="@drawable/ic_artist" />
 
-    <!--    </ScrollView>-->
+                <TextView
+                    android:id="@+id/artist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_song_group"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/artist_icon"
+                    android:text="@string/artists"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+
+                <ImageButton
+                    android:id="@+id/showArtist_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_song_group"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/artist"
+                    android:background="@android:color/transparent"
+                    android:onClick="showArtist"
+                    app:srcCompat="@drawable/ic_down" />
+                <LinearLayout
+                    android:id="@+id/fav_artist_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_below="@id/artist"
+                    android:visibility="gone"/>
+
+                <ImageView
+                    android:id="@+id/genre_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_artist_group"
+                    android:layout_marginVertical="15dp"
+                    app:srcCompat="@drawable/ic_genre" />
+
+                <TextView
+                    android:id="@+id/genre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_artist_group"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/genre_icon"
+                    android:text="@string/genre"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+
+                <ImageButton
+                    android:id="@+id/showGenre_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/fav_artist_group"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@+id/genre"
+                    android:background="@android:color/transparent"
+                    android:onClick="showGenre"
+                    app:srcCompat="@drawable/ic_down" />
+                <LinearLayout
+                    android:id="@+id/fav_genre_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_below="@id/genre"
+                    android:visibility="gone"/>
+
+            </RelativeLayout>
+
+            <ImageView
+                android:id="@+id/upload_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/fav_group"
+                android:layout_marginVertical="15dp"
+                app:srcCompat="@drawable/ic_upload" />
+
+            <TextView
+                android:id="@+id/upload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/fav_group"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/upload_icon"
+                android:text="@string/uploaded_songs"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+            </RelativeLayout>
+
+        </ScrollView>
 
 
 </RelativeLayout>

@@ -30,11 +30,13 @@ import com.example.mshare.models.Data;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
 import com.example.mshare.models.Song;
+import com.example.mshare.models.Tokens;
 import com.example.mshare.models.User;
 import com.example.mshare.utilClasses.Client;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -61,6 +63,7 @@ public class UserListActivity extends AppCompatActivity {
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final ArrayList<User> users = new ArrayList<>();
+    private final ArrayList<User> fullUsers = new ArrayList<>();
     private APIService apiService;
     private String roomId;
     private ListenerRegistration listener1;
@@ -75,7 +78,7 @@ public class UserListActivity extends AppCompatActivity {
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         assert firebaseUser != null;
         Intent intent = getIntent();
-        //roomId = intent.getExtras().getString("room_id");
+        roomId = intent.getExtras().getString("room_id");
         db.collection("users")
                 .orderBy("onlineStatus", Query.Direction.DESCENDING)
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -89,10 +92,14 @@ public class UserListActivity extends AppCompatActivity {
                         newUser.setId(ds.getId());
                         newUser.setOnlineStatus(ds.getString("onlineStatus"));
                         users.add(newUser);
+                        fullUsers.add(newUser);
+                        db.collection("users")
+                                .whereEqualTo(FieldPath.documentId(), ds.getId())
+                                .addSnapshotListener(eventListener1);
                     }
                 }
                 userList = findViewById(R.id.user_listView);
-                userListAdapter = new UserListAdapter(UserListActivity.this, users);
+                userListAdapter = new UserListAdapter(UserListActivity.this, users, fullUsers);
                 userListAdapter.notifyDataSetChanged();
                 userList.setAdapter(userListAdapter);
             }
@@ -102,12 +109,12 @@ public class UserListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
-//        listener1 = db.collection("rooms")
-//                .document(roomId)
-//                .collection("request_response")
-//                .whereEqualTo(FieldPath.documentId(),roomId)
-//                .addSnapshotListener(eventListener)
-//        ;
+        listener1 = db.collection("rooms")
+                .document(roomId)
+                .collection("request_response")
+                .whereEqualTo(FieldPath.documentId(),roomId)
+                .addSnapshotListener(eventListener)
+        ;
 
 
     }
@@ -117,27 +124,34 @@ public class UserListActivity extends AppCompatActivity {
         db.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                String token = task.getResult().getString("token");
-                assert currentUser != null;
-                Data data = new Data(currentUser.getUid(), null, null, roomId, receiverId);
-                Sender sender = new Sender(data, token);
-                apiService.sendNotification(sender)
-                        .enqueue(new Callback<NotificationResponse>() {
-                            @Override
-                            public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
-                                if (response.code() == 200) {
-                                    assert response.body() != null;
-                                    if (response.body().getSuccess() != 1) {
-                                        Toast.makeText(UserListActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            }
+                db.collection("tokens").document(receiverId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        Tokens tokens = documentSnapshot.toObject(Tokens.class);
+                        for (String token : tokens.getNames()) {
+                            assert currentUser != null;
+                            Data data = new Data(currentUser.getUid(), null, null, roomId, receiverId);
+                            Sender sender = new Sender(data, token);
+                            apiService.sendNotification(sender)
+                                    .enqueue(new Callback<NotificationResponse>() {
+                                        @Override
+                                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                                            if (response.code() == 200) {
+                                                assert response.body() != null;
+                                                if (response.body().getSuccess() != 1) {
+                                                    Toast.makeText(UserListActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        }
 
-                            @Override
-                            public void onFailure(Call<NotificationResponse> call, Throwable t) {
+                                        @Override
+                                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
 
-                            }
-                        });
+                                        }
+                                    });
+                        }
+                    }
+                });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -169,6 +183,29 @@ public class UserListActivity extends AppCompatActivity {
             }
         }
     };
+    private final EventListener<QuerySnapshot> eventListener1 = (value, error) -> {
+        if (error != null) {
+            return;
+        }
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    String onlineStatus = documentChange.getDocument().getString("onlineStatus");
+                    for (int i = 0; i < users.size(); i++) {
+                        if(users.get(i).getId().equals(documentChange.getDocument().getId())){
+                            users.get(i).setOnlineStatus(onlineStatus);
+                        }
+                    }
+                    for (int i = 0; i < fullUsers.size(); i++){
+                        if(fullUsers.get(i).getId().equals(documentChange.getDocument().getId())){
+                            fullUsers.get(i).setOnlineStatus(onlineStatus);
+                            userListAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,7 +213,7 @@ public class UserListActivity extends AppCompatActivity {
         MenuItem searchViewItem = menu.findItem(R.id.searchView);
         SearchView searchUser = (SearchView) MenuItemCompat.getActionView(searchViewItem);
 
-        searchUser.setQueryHint("Enter song name...");
+        searchUser.setQueryHint("Enter User Name...");
         searchUser.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -185,14 +222,7 @@ public class UserListActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-//                List<User> userSearchResult = users.stream()
-//                        .filter(user -> user.getName().contains(newText))
-//                        .collect(Collectors.toList());
-//                if (userSearchResult.size() != 0) {
-                    userListAdapter.getFilter().filter(newText);
-//                    userListAdapter.users = (ArrayList<User>) userSearchResult;
-//                    userListAdapter.notifyDataSetChanged();
-//                }
+                userListAdapter.getFilter().filter(newText);
                 return false;
             }
         });
@@ -218,11 +248,11 @@ public class UserListActivity extends AppCompatActivity {
         private ArrayList<User> users;
         private ArrayList<User> allUsers;
 
-        public UserListAdapter(@NonNull Context context, @NonNull List<User> objects) {
+        public UserListAdapter(@NonNull Context context, @NonNull List<User> objects, List<User> fullUsers) {
             super(context, -1, objects);
             this.context = context;
             this.users = (ArrayList<User>) objects;
-            this.allUsers = new ArrayList<>(objects);
+            this.allUsers = (ArrayList<User>) fullUsers;
         }
 
         @SuppressLint("SetTextI18n")
@@ -241,9 +271,12 @@ public class UserListActivity extends AppCompatActivity {
             if (users.get(position).getOnlineStatus().equals("Online")) {
                 onlineStatusView.setText("Online");
                 onlineStatusView.setTextColor(Color.GREEN);
-            } else {
+            } else if (users.get(position).getOnlineStatus().equals("Offline")) {
                 onlineStatusView.setText("Offline");
                 onlineStatusView.setTextColor(Color.DKGRAY);
+            } else {
+                onlineStatusView.setText("Busy");
+                onlineStatusView.setTextColor(Color.RED);
             }
 
             Button sendRequestButton = rowLayout.findViewById(R.id.send_request_btn);
@@ -254,7 +287,7 @@ public class UserListActivity extends AppCompatActivity {
                         if (users.get(position).getOnlineStatus().equals("Online"))
                             sendRequestNotification(users.get(position).getId());
                         else Toast.makeText(UserListActivity.this,
-                                "CANNOT SEND REQUEST: This user is currently offline", Toast.LENGTH_SHORT).show();
+                                "CANNOT SEND REQUEST: This user is currently offline or busy", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

@@ -12,6 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MShare">
         <activity
+            android:name=".ExitActivity"
+            android:autoRemoveFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay" />
+        <activity
             android:name=".EditFavoriteActivity"
             android:exported="false" />
 

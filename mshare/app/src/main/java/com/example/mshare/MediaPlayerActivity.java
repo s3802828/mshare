@@ -46,6 +46,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class MediaPlayerActivity extends AppCompatActivity {
@@ -209,6 +210,9 @@ public class MediaPlayerActivity extends AppCompatActivity {
                         sharingLayout.setVisibility(View.GONE);
                         if(firebaseAuth.getCurrentUser().getUid().equals(guestId)) {
                             finish();
+                            if(!ApplicationStatus.isIsApplicationRunning()) {
+                                ExitActivity.exitApplication(this);
+                            }
                         }
                     }
                 }
@@ -303,6 +307,17 @@ public class MediaPlayerActivity extends AppCompatActivity {
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
+                                                    ArrayList<String> ids = new ArrayList<>();
+                                                    ids.add(hostId);
+                                                    ids.add(firebaseAuth.getCurrentUser().getUid());
+                                                    db.collection("users").document(hostId)
+                                                        .update("onlineStatus", "Busy").addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(@NonNull Void unused) {
+                                                            db.collection("users").document(firebaseAuth.getCurrentUser().getUid())
+                                                                    .update("onlineStatus", "Busy");
+                                                        }
+                                                    });
                                                 }
                                             });
                                 } else {

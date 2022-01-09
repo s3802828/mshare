@@ -7,6 +7,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,7 +22,9 @@ import com.example.mshare.models.Data;
 import com.example.mshare.models.Message;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
+import com.example.mshare.models.Tokens;
 import com.example.mshare.models.User;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.example.mshare.utilClasses.Client;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -59,7 +62,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private AppCompatImageView backButton;
     private APIService apiService;
-
+    private Boolean isFromBackGround;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +70,7 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(activityChatBinding.getRoot());
         initialize();
+//        System.out.println(isFromBackGround);
         addRealTimeDocumentChangeListener();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
@@ -80,9 +84,16 @@ public class ChatActivity extends AppCompatActivity {
         receiver = (User) getIntent().getSerializableExtra("User");
         activityChatBinding.userName.setText(receiver.getName());
         Glide.with(ChatActivity.this).load(receiver.getAvatar()).into(activityChatBinding.userAvatar);
-
         backButton = findViewById(R.id.backBtn);
-        backButton.setOnClickListener(v -> onBackPressed());
+        backButton.setOnClickListener(v -> finish());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!ApplicationStatus.isIsApplicationRunning()) {
+            ExitActivity.exitApplication(this);
+        }
     }
 
     public static String convertDateFormat(Date date) {
@@ -228,31 +239,38 @@ public class ChatActivity extends AppCompatActivity {
         database.collection("users").document(receiver.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                String token = task.getResult().getString("token");
                 String active = task.getResult().getString("active");
                 if (active.equals("Active now")) {
                     return;
                 }
-                assert currentUser != null;
-                Data data = new Data(currentUser.getUid(), null, content, receiver.getName(), receiver.getId());
-                Sender sender = new Sender(data, token);
-                apiService.sendNotification(sender)
-                        .enqueue(new Callback<NotificationResponse>() {
-                            @Override
-                            public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
-                                if (response.code() == 200) {
-                                    assert response.body() != null;
-                                    if (response.body().getSuccess() != 1) {
-                                        Toast.makeText(ChatActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            }
+                database.collection("tokens").document(receiver.getId()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        Tokens tokens = documentSnapshot.toObject(Tokens.class);
+                        for (String token : tokens.getNames()) {
+                            assert currentUser != null;
+                            Data data = new Data(currentUser.getUid(), null, content, receiver.getName(), receiver.getId());
+                            Sender sender = new Sender(data, token);
+                            apiService.sendNotification(sender)
+                                    .enqueue(new Callback<NotificationResponse>() {
+                                        @Override
+                                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                                            if (response.code() == 200) {
+                                                assert response.body() != null;
+                                                if (response.body().getSuccess() != 1) {
+                                                    Toast.makeText(ChatActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        }
 
-                            @Override
-                            public void onFailure(Call<NotificationResponse> call, Throwable t) {
+                                        @Override
+                                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
 
-                            }
-                        });
+                                        }
+                                    });
+                        }
+                    }
+                });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -262,7 +280,6 @@ public class ChatActivity extends AppCompatActivity {
         });
 
     }
-
 
     @Override
     protected void onPause() {

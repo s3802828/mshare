@@ -2,6 +2,7 @@ package com.example.mshare;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
+import com.example.mshare.models.Tokens;
 import com.example.mshare.models.User;
 import com.example.mshare.utilClasses.ApplicationStatus;
 import com.facebook.AccessToken;
@@ -39,10 +42,17 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 
@@ -60,16 +70,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        Intent intent = getIntent();
-        if(intent != null){
-            if(intent.hasExtra("isSharingMode")){
-                String roomId = intent.getExtras().getString("room_id");
-                Intent intent1 = new Intent(this, SongListActivity.class);
-                intent1.putExtra("isSharingMode", true);
-                intent1.putExtra("room_id", roomId);
-                startActivityForResult(intent1, 200);
-            }
-        }
 
         emailInput = findViewById(R.id.email_login);
         passwordInput = findViewById(R.id.password_login);
@@ -134,6 +134,26 @@ public class LoginActivity extends AppCompatActivity {
         ApplicationStatus.setIsApplicationRunning(true);
     }
 
+    private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
+        if (error != null) {
+            return;
+        }
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    Tokens tokens = documentChange.getDocument().toObject(Tokens.class);
+                    int tokenListSize = tokens.getNames().size();
+                    if(tokenListSize == 0)
+                        db.collection("users").document(tokens.getId())
+                        .update("onlineStatus", "Offline");
+                    else db.collection("users").document(tokens.getId())
+                            .update("onlineStatus", "Online");
+
+                }
+            }
+        }
+    };
+
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, 101);
@@ -189,6 +209,9 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
     private void goToMain(){
+        db.collection("tokens")
+                .whereEqualTo(FieldPath.documentId(), mFirebaseAuth.getCurrentUser().getUid())
+                .addSnapshotListener(eventListener);
         Intent intent = new Intent(LoginActivity.this, SongListActivity.class);
         emailInput.setText("");
         passwordInput.setText("");
@@ -202,9 +225,10 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<String> task) {
                                 String token = task.getResult();
+                                ApplicationStatus.setCurrentToken(token);
                                 if(userTask.getResult().getString("name") == null){
                                     User newUser = new User(user.getDisplayName(), user.getEmail(), user.getPhotoUrl().toString());
-                                    newUser.setToken(token);
+                                    newUser.setId(user.getUid());
                                     if(user.getProviderData().get(1).getProviderId().equals("google.com")){
                                         newUser.setEmail(user.getProviderData().get(1).getEmail());
                                     } else if (user.getProviderData().get(1).getProviderId().equals("facebook.com")){
@@ -212,26 +236,42 @@ public class LoginActivity extends AppCompatActivity {
                                         newUser.setEmail(user.getProviderData().get(1).getEmail());
                                         newUser.setAvatar(user.getPhotoUrl().toString() + "?access_token=" + accessToken);
                                     }
+                                    newUser.setActive("No Active");
+                                    newUser.setOnlineStatus("Online");
                                     db.collection("users").document(user.getUid()).set(newUser)
                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(@NonNull Void unused) {
-                                                    newUser.setActive("No Active");
-                                                    newUser.setOnlineStatus("Online");
-                                                    startActivityForResult(intent, 200);
+                                                    ArrayList<String> tokens = new ArrayList<>();
+                                                    tokens.add(token);
+                                                    Tokens tokens1 = new Tokens();
+                                                    tokens1.setId(user.getUid());
+                                                    tokens1.setNames(tokens);
+                                                    db.collection("tokens").document(user.getUid()).set(tokens1)
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(@NonNull Void unused) {
+                                                            startActivity(intent);
+                                                        }
+                                                    });
                                                 }
                                             });
                                 } else {
-                                    if(!userTask.getResult().getString("token").equals(token)){
-                                    }
-                                    db.collection("users").document(user.getUid())
-                                            .update("token", token,
-                                                    "onlineStatus", "Online",
-                                                    "active", "No Active")
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    db.collection("tokens").document(user.getUid()).get()
+                                            .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                                 @Override
-                                                public void onSuccess(@NonNull Void unused) {
-                                                    startActivityForResult(intent, 200);
+                                                public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                                                    Tokens tokensList = documentSnapshot.toObject(Tokens.class);
+                                                    ArrayList<String> tokens = tokensList.getNames();
+                                                    if(!tokens.contains(token)) tokens.add(token);
+                                                    tokensList.setNames(tokens);
+                                                    db.collection("tokens").document(user.getUid()).set(tokensList)
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(@NonNull Void unused) {
+                                                                    startActivity(intent);
+                                                                }
+                                                            });
                                                 }
                                             });
                                 }
@@ -268,13 +308,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 200){
-            if(resultCode == 200){
-                mGoogleSignInClient.signOut();
-                Toast.makeText(LoginActivity.this, "You have successfully logged out!", Toast.LENGTH_SHORT).show();
-            }
-        }
-
         if (requestCode == 101) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {

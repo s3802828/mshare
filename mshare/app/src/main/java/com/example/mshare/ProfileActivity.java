@@ -30,6 +30,8 @@ import com.bumptech.glide.Glide;
 import com.example.mshare.models.Favorite;
 import com.example.mshare.models.Genre;
 import com.example.mshare.models.Song;
+import com.example.mshare.models.Tokens;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.util.Hex;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -233,17 +235,33 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     public void onLogout(View v){
-        updateUserStatus("Offline");
-        firebaseAuth.signOut();
-        LoginManager.getInstance().logOut();
-        Intent intent1 = new Intent(ProfileActivity.this, LoginActivity.class);
-        intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
-        |Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent1);
-        finish();
+        db.collection("tokens").document(firebaseAuth.getCurrentUser().getUid()).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        Tokens tokensList = documentSnapshot.toObject(Tokens.class);
+                        ArrayList<String> tokens = tokensList.getNames();
+                        tokens.remove(ApplicationStatus.getCurrentToken());
+                        tokensList.setNames(tokens);
+                        db.collection("tokens")
+                                .document(firebaseAuth.getCurrentUser().getUid()).set(tokensList)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(@NonNull Void unused) {
+                                        firebaseAuth.signOut();
+                                        LoginManager.getInstance().logOut();
+                                        Intent intent1 = new Intent(ProfileActivity.this, LoginActivity.class);
+                                        intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                                |Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        startActivity(intent1);
+                                        finish();
+                                    }
+                                });
+                    }
+                });
     }
-    private void updateUserStatus(String status) {
-        db.collection("users").document(firebaseAuth.getCurrentUser().getUid()).update("onlineStatus", status);
+    private void updateUserStatus() {
+
     }
     public void editFav(View v){
         Intent intent = new Intent(this, EditFavoriteActivity.class);

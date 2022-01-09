@@ -18,6 +18,7 @@ import com.example.mshare.SongListActivity;
 import com.example.mshare.services.FirebaseNotificationService;
 import com.example.mshare.utilClasses.ApplicationStatus;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RequestNotificationReceiver extends BroadcastReceiver {
@@ -32,31 +33,39 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
         Bundle bundle = intent.getExtras();
         String roomId = bundle.getString("room_id");
         System.out.println(bundle.containsKey("room_id"));
-        if(!bundle.containsKey("accept")) {
-            db.collection("rooms").document(roomId)
-                    .collection("request_response")
-                    .document(roomId)
-                    .update("response", "no_response");
-        }
-        else {
-            boolean isAccept = bundle.getBoolean("accept");
-            if(isAccept) {
-                Intent intent1;
-                if(!ApplicationStatus.isIsApplicationRunning()){
-                    intent1 = new Intent(context, LoginActivity.class);
-                    intent1.setFlags(Intent.FLAG_FROM_BACKGROUND);
-                } else intent1 = new Intent(context, MediaPlayerActivity.class);
-                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent1.putExtra("isSharingMode", true);
-                intent1.putExtra("room_id", roomId);
-                context.startActivity(intent1);
+        db.collection("rooms").document(roomId)
+                .collection("request_response")
+                .document(roomId)
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                String res = documentSnapshot.getString("response");
+                if(res.equals("")){
+                    if(!bundle.containsKey("accept")) {
+                        db.collection("rooms").document(roomId)
+                                .collection("request_response")
+                                .document(roomId)
+                                .update("response", "no_response");
+                    }
+                    else {
+                        boolean isAccept = bundle.getBoolean("accept");
+                        if(isAccept) {
+                            Intent intent1 = new Intent(context, MediaPlayerActivity.class);
+                            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent1.putExtra("isSharingMode", true);
+                            intent1.putExtra("room_id", roomId);
+                            context.startActivity(intent1);
+                        }
+                        else {
+                            db.collection("rooms").document(roomId)
+                                    .collection("request_response")
+                                    .document(roomId)
+                                    .update("response", "decline");
+                        }
+                    }
+                } else Toast.makeText(context, "You have already response", Toast.LENGTH_SHORT).show();
             }
-            else {
-                db.collection("rooms").document(roomId)
-                        .collection("request_response")
-                        .document(roomId)
-                        .update("response", "decline");
-            }
-        }
+        });
+
     }
 }

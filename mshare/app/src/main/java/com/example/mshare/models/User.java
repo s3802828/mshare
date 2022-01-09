@@ -7,7 +7,6 @@ public class User implements Serializable {
     private String name;
     private String email;
     private String avatar;
-    private String token;
     private String onlineStatus;
     private String active;
 
@@ -50,14 +49,6 @@ public class User implements Serializable {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public String getOnlineStatus() { return onlineStatus; }

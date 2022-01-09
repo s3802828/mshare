@@ -222,6 +222,8 @@ public class LoginActivity extends AppCompatActivity {
                                                 }
                                             });
                                 } else {
+                                    if(!userTask.getResult().getString("token").equals(token)){
+                                    }
                                     db.collection("users").document(user.getUid())
                                             .update("token", token,
                                                     "onlineStatus", "Online",

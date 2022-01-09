@@ -5,8 +5,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -14,8 +16,10 @@ import android.graphics.drawable.ShapeDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -25,6 +29,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.mshare.models.Favorite;
 import com.example.mshare.models.Genre;
+import com.example.mshare.models.Song;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.util.Hex;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -44,6 +49,8 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView userNameView, userEmailView;
     private Favorite favorite;
     private LinearLayout favSongLayout, favArtistLayout, favGenreLayout;
+    private EditText nameInput;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +60,18 @@ public class ProfileActivity extends AppCompatActivity {
         avatarView = findViewById(R.id.avatar);
         userNameView = findViewById(R.id.userName);
         userEmailView = findViewById(R.id.userEmail);
+        nameInput = findViewById(R.id.userNameEdit);
 
-
+        ImageButton editName = findViewById(R.id.editName_btn);
+        ImageButton editFav = findViewById(R.id.editFav_btn);
+        Button logout = findViewById(R.id.logout);
         Intent intent = getIntent();
-        String userId = intent.getExtras().getString("userId");
+        userId = intent.getExtras().getString("userId");
+        if(!userId.equals(firebaseAuth.getCurrentUser().getUid())){
+            editName.setVisibility(View.GONE);
+            editFav.setVisibility(View.GONE);
+            logout.setVisibility(View.GONE);
+        }
         db.collection("users").document(userId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
@@ -65,6 +80,7 @@ public class ProfileActivity extends AppCompatActivity {
                 String userEmail = documentSnapshot.getString("email");
 
                 userNameView.setText(userName);
+                nameInput.setText(userName);
                 Glide.with(ProfileActivity.this).load(userAvatar).into(avatarView);
                 userEmailView.setText(userEmail);
 
@@ -87,9 +103,10 @@ public class ProfileActivity extends AppCompatActivity {
         favArtistLayout.removeAllViews();
         favSongLayout.removeAllViews();
         favGenreLayout.removeAllViews();
-        db.collection("favorites").document(firebaseAuth.getCurrentUser().getUid())
+        db.collection("favorites").document(userId)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
                         favorite = documentSnapshot.toObject(Favorite.class);
@@ -105,11 +122,11 @@ public class ProfileActivity extends AppCompatActivity {
                                     1.0f
                             );
                             artistLayoutParams.setMargins(0,0, 2, 5);
-                            for (String song : favorite.getSongs()) {
+                            for (Song song : favorite.getSongs()) {
                                 TextView newView = new TextView(ProfileActivity.this);
-                                newView.setText(song);
+                                newView.setText(song.getTitle() +" - " + song.getArtist());
                                 newView.setPadding(10, 10, 10, 10);
-                                newView.setTextColor(Color.DKGRAY);
+                                newView.setTextColor(Color.BLACK);
                                 newView.setTextSize(16);
                                 newView.setGravity(Gravity.CENTER);
                                 newView.setBackgroundResource(R.drawable.genre_border);
@@ -126,7 +143,7 @@ public class ProfileActivity extends AppCompatActivity {
                                     TextView newView = new TextView(ProfileActivity.this);
                                     newView.setText(favorite.getArtists().get(i+j));
                                     newView.setPadding(10, 10, 10, 10);
-                                    newView.setTextColor(Color.DKGRAY);
+                                    newView.setTextColor(Color.BLACK);
                                     newView.setTextSize(16);
                                     newView.setGravity(Gravity.CENTER);
                                     newView.setBackgroundResource(R.drawable.artist_border);
@@ -145,9 +162,10 @@ public class ProfileActivity extends AppCompatActivity {
                                     if(i+j == favorite.getGenres().size()) break;
                                     TextView newView = new TextView(ProfileActivity.this);
                                     newView.setText(favorite.getGenres().get(i+j).getGenreName());
-                                    newView.setTextColor(Color.DKGRAY);
+                                    newView.setTextColor(Color.WHITE);
                                     newView.setTextSize(16);
                                     newView.setGravity(Gravity.CENTER);
+                                    newView.setTypeface(null, Typeface.BOLD);
                                     newView.setPadding(10, 10, 10, 10);
                                     newView.setBackgroundResource(R.drawable.genre_border);
                                     //newView.setBackgroundColor(Color.parseColor(favorite.getGenres().get(i+j).getGenreColor()));
@@ -173,7 +191,46 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
-
+    @SuppressLint("SetTextI18n")
+    public void onEditName(View v){
+        TextView name = findViewById(R.id.userName);
+        ImageButton nameEditBtn = findViewById(R.id.editName_btn);
+        String nameValue = nameInput.getText().toString();
+        if(name.getVisibility() == View.VISIBLE){
+            name.setVisibility(View.GONE);
+            nameInput.setVisibility(View.VISIBLE);
+            nameEditBtn.setImageResource(R.drawable.ic_check);
+        } else {
+            TextView invalidName = findViewById(R.id.invalidName);
+            //Validate name
+            if(nameValue.equals("")){
+                invalidName.setText("Name is required");
+                invalidName.setVisibility(View.VISIBLE);
+            } else if (!nameValue.matches("^(?![ ]+$)[a-zA-Z .]*$")){
+                invalidName.setText("Name must only contain letters and space");
+                invalidName.setVisibility(View.VISIBLE);
+            } else invalidName.setVisibility(View.GONE);
+            if(invalidName.getVisibility() == View.GONE){
+                if(name.getText().toString().equals(nameValue.trim())){
+                    name.setVisibility(View.VISIBLE);
+                    nameInput.setVisibility(View.GONE);
+                    nameEditBtn.setImageResource(R.drawable.ic_edit_profile);
+                } else {
+                    db.collection("users").document(firebaseAuth.getCurrentUser().getUid())
+                            .update("name", nameValue.trim())
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(@NonNull Void unused) {
+                                    name.setText(nameValue.trim());
+                                    name.setVisibility(View.VISIBLE);
+                                    nameInput.setVisibility(View.GONE);
+                                    nameEditBtn.setImageResource(R.drawable.ic_edit_profile);
+                                }
+                            });
+                }
+            }
+        }
+    }
 
     public void onLogout(View v){
         updateUserStatus("Offline");

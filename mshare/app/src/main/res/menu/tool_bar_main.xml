@@ -4,18 +4,16 @@
     <item
         android:id="@+id/searchView"
         android:title="@string/search"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
     <item
         android:id="@+id/conversationList"
         android:title="@string/chats"
         android:icon="@drawable/ic_message"
-        app:showAsAction="always"
-        />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/profilePage"
         android:title="@string/profile"
         android:icon="@drawable/ic_user"
-        app:showAsAction="always"
-        />
+        app:showAsAction="ifRoom" />
 </menu>

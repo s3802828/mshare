@@ -3,6 +3,8 @@ package com.example.mshare;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuItemCompat;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,6 +29,8 @@ import com.example.mshare.interfaces.APIService;
 import com.example.mshare.models.Data;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
+import com.example.mshare.models.Song;
+import com.example.mshare.models.User;
 import com.example.mshare.utilClasses.Client;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -45,6 +50,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,13 +60,12 @@ import retrofit2.Response;
 public class UserListActivity extends AppCompatActivity {
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final ArrayList<String> userNames = new ArrayList<>();
-    private final ArrayList<String> userIds = new ArrayList<>();
-    private final ArrayList<String> avatars = new ArrayList<>();
-    private final ArrayList<String> onlineStatuses = new ArrayList<>();
+    private final ArrayList<User> users = new ArrayList<>();
     private APIService apiService;
     private String roomId;
     private ListenerRegistration listener1;
+    private UserListAdapter userListAdapter;
+    private ListView userList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,22 +75,24 @@ public class UserListActivity extends AppCompatActivity {
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         assert firebaseUser != null;
         Intent intent = getIntent();
-        roomId = intent.getExtras().getString("room_id");
+        //roomId = intent.getExtras().getString("room_id");
         db.collection("users")
                 .orderBy("onlineStatus", Query.Direction.DESCENDING)
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                for (QueryDocumentSnapshot ds:task.getResult()) {
-                    if(!ds.getId().equals(firebaseUser.getUid())){
-                        userNames.add(ds.getString("name"));
-                        avatars.add(ds.getString("avatar"));
-                        userIds.add(ds.getId());
-                        onlineStatuses.add(ds.getString("onlineStatus"));
+                for (QueryDocumentSnapshot ds : task.getResult()) {
+                    if (!ds.getId().equals(firebaseUser.getUid())) {
+                        User newUser = new User();
+                        newUser.setName(ds.getString("name"));
+                        newUser.setAvatar(ds.getString("avatar"));
+                        newUser.setId(ds.getId());
+                        newUser.setOnlineStatus(ds.getString("onlineStatus"));
+                        users.add(newUser);
                     }
                 }
-                ListView userList = findViewById(R.id.user_listView);
-                UserListAdapter userListAdapter = new UserListAdapter(UserListActivity.this, userNames);
+                userList = findViewById(R.id.user_listView);
+                userListAdapter = new UserListAdapter(UserListActivity.this, users);
                 userListAdapter.notifyDataSetChanged();
                 userList.setAdapter(userListAdapter);
             }
@@ -94,16 +102,17 @@ public class UserListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
-        listener1 = db.collection("rooms")
-                .document(roomId)
-                .collection("request_response")
-                .whereEqualTo(FieldPath.documentId(),roomId)
-                .addSnapshotListener(eventListener)
-        ;
+//        listener1 = db.collection("rooms")
+//                .document(roomId)
+//                .collection("request_response")
+//                .whereEqualTo(FieldPath.documentId(),roomId)
+//                .addSnapshotListener(eventListener)
+//        ;
 
 
     }
-    private void sendRequestNotification(String receiverId){
+
+    private void sendRequestNotification(String receiverId) {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         db.collection("users").document(receiverId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -116,9 +125,9 @@ public class UserListActivity extends AppCompatActivity {
                         .enqueue(new Callback<NotificationResponse>() {
                             @Override
                             public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
-                                if(response.code() == 200){
+                                if (response.code() == 200) {
                                     assert response.body() != null;
-                                    if(response.body().getSuccess() != 1){
+                                    if (response.body().getSuccess() != 1) {
                                         Toast.makeText(UserListActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -138,6 +147,7 @@ public class UserListActivity extends AppCompatActivity {
         });
 
     }
+
     private final EventListener<QuerySnapshot> eventListener = (value, error) -> {
         if (error != null) {
             return;
@@ -147,14 +157,13 @@ public class UserListActivity extends AppCompatActivity {
             for (DocumentChange documentChange : value.getDocumentChanges()) {
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     res = documentChange.getDocument().getString("response");
-                    if(res.equals("accept")){
+                    if (res.equals("accept")) {
                         Intent intent = new Intent(UserListActivity.this, MediaPlayerActivity.class);
                         setResult(100, intent);
                         finish();
-                    }
-                    else if(res.equals("decline"))
+                    } else if (res.equals("decline"))
                         Toast.makeText(UserListActivity.this, "This user has declined your request", Toast.LENGTH_SHORT).show();
-                    else if(res.equals("no_response"))
+                    else if (res.equals("no_response"))
                         Toast.makeText(UserListActivity.this, "No response from this user", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -164,12 +173,35 @@ public class UserListActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.tool_bar_main, menu);
+        MenuItem searchViewItem = menu.findItem(R.id.searchView);
+        SearchView searchUser = (SearchView) MenuItemCompat.getActionView(searchViewItem);
+
+        searchUser.setQueryHint("Enter song name...");
+        searchUser.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+//                List<User> userSearchResult = users.stream()
+//                        .filter(user -> user.getName().contains(newText))
+//                        .collect(Collectors.toList());
+//                if (userSearchResult.size() != 0) {
+                    userListAdapter.getFilter().filter(newText);
+//                    userListAdapter.users = (ArrayList<User>) userSearchResult;
+//                    userListAdapter.notifyDataSetChanged();
+//                }
+                return false;
+            }
+        });
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.logout:
                 firebaseAuth.signOut();
                 LoginManager.getInstance().logOut();
@@ -181,13 +213,16 @@ public class UserListActivity extends AppCompatActivity {
         }
     }
 
-    private class UserListAdapter extends ArrayAdapter<String>{
+    private class UserListAdapter extends ArrayAdapter<User> {
         private final Context context;
-        private final ArrayList<String> userNames;
-        public UserListAdapter(@NonNull Context context, @NonNull List<String> objects) {
+        private ArrayList<User> users;
+        private ArrayList<User> allUsers;
+
+        public UserListAdapter(@NonNull Context context, @NonNull List<User> objects) {
             super(context, -1, objects);
             this.context = context;
-            this.userNames = (ArrayList<String>) objects;
+            this.users = (ArrayList<User>) objects;
+            this.allUsers = new ArrayList<>(objects);
         }
 
         @SuppressLint("SetTextI18n")
@@ -197,14 +232,13 @@ public class UserListActivity extends AppCompatActivity {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             @SuppressLint("ViewHolder") View rowLayout = inflater.inflate(R.layout.user_list_view, parent, false);
             ImageView avatarView = rowLayout.findViewById(R.id.user_avatar);
-            Glide.with(UserListActivity.this).load(avatars.get(position)).into(avatarView);
-
+            Glide.with(UserListActivity.this).load(users.get(position).getAvatar()).into(avatarView);
 
             TextView nameView = rowLayout.findViewById(R.id.userName);
-            nameView.setText(userNames.get(position));
+            nameView.setText(users.get(position).getName());
 
             TextView onlineStatusView = rowLayout.findViewById(R.id.onlineStatus);
-            if(onlineStatuses.get(position).equals("Online")){
+            if (users.get(position).getOnlineStatus().equals("Online")) {
                 onlineStatusView.setText("Online");
                 onlineStatusView.setTextColor(Color.GREEN);
             } else {
@@ -216,15 +250,57 @@ public class UserListActivity extends AppCompatActivity {
             sendRequestButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    {   if(onlineStatuses.get(position).equals("Online"))
-                            sendRequestNotification(userIds.get(position));
+                    {
+                        if (users.get(position).getOnlineStatus().equals("Online"))
+                            sendRequestNotification(users.get(position).getId());
                         else Toast.makeText(UserListActivity.this,
                                 "CANNOT SEND REQUEST: This user is currently offline", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
+            Button viewProfileButton = rowLayout.findViewById(R.id.view_profile_btn);
+            viewProfileButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(UserListActivity.this, ProfileActivity.class);
+                    intent.putExtra("userId", users.get(position).getId());
+                    startActivity(intent);
+                }
+            });
             return rowLayout;
         }
+
+        @Override
+        public Filter getFilter() {
+            return searchFilter;
+        }
+
+        private Filter searchFilter = new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                ArrayList<User> filteredList = new ArrayList<>();
+
+                if (constraint == null || constraint.length() == 0) {
+                    filteredList.addAll(allUsers);
+                } else {
+                    for (User user : allUsers) {
+                        if (user.getName().toLowerCase().contains(constraint.toString().toLowerCase())) {
+                            filteredList.add(user);
+                        }
+                    }
+                }
+                FilterResults results = new FilterResults();
+                results.values = filteredList;
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                users.clear();
+                users.addAll((List) results.values);
+                notifyDataSetChanged();
+            }
+        };
     }
 
     @Override

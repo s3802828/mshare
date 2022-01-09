@@ -7,11 +7,13 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -22,6 +24,7 @@ import android.widget.Toast;
 
 import com.example.mshare.models.Favorite;
 import com.example.mshare.models.Genre;
+import com.example.mshare.models.Song;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -35,11 +38,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.Set;
 
 public class EditFavoriteActivity extends AppCompatActivity {
     private LinearLayout favSongEdit, favArtistEdit, favGenreEdit;
-    private final LinkedHashMap<Integer, String> addSongRowResult = new LinkedHashMap<>();
+    private final LinkedHashMap<Integer, Song> addSongRowResult = new LinkedHashMap<>();
     private final LinkedHashMap<Integer, String> addArtistRowResult = new LinkedHashMap<>();
     private ArrayList<Genre> genreChosen;
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -54,6 +58,18 @@ public class EditFavoriteActivity extends AppCompatActivity {
         favGenreEdit = findViewById(R.id.fav_genre_edit);
         Intent intent = getIntent();
         genreChosen = ((Favorite) intent.getExtras().get("favorites")).getGenres();
+        ArrayList<Song> songChosen = ((Favorite) intent.getExtras().get("favorites")).getSongs();
+        for (Song song: songChosen) {
+            onAddFavSongEdit(song);
+        }
+        ArrayList<String> artistChosen = ((Favorite) intent.getExtras().get("favorites")).getArtists();
+        for (String artist: artistChosen) {
+            onAddFavArtistEdit(artist);
+        }
+        ImageButton addNewSongEdit = findViewById(R.id.addSongFav);
+        addNewSongEdit.setOnClickListener(v -> onAddFavSongEdit(null));
+        ImageButton addNewArtistEdit = findViewById(R.id.addArtistFav);
+        addNewArtistEdit.setOnClickListener(v -> onAddFavArtistEdit(""));
         db.collection("song_fav_genres").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(@NonNull QuerySnapshot queryDocumentSnapshots) {
@@ -156,7 +172,7 @@ public class EditFavoriteActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    public void onAddFavSongEdit(View v){
+    public void onAddFavSongEdit(Song song){
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -179,10 +195,12 @@ public class EditFavoriteActivity extends AppCompatActivity {
         EditText songNameEdit = new EditText(this);
         songNameEdit.setHint(R.string.enter_your_favorite_song_name);
         songNameEdit.setLayoutParams(editTextParam);
+        if(song != null) songNameEdit.setText(song.getTitle());
 
         EditText songArtistEdit = new EditText(this);
         songArtistEdit.setHint(R.string.enter_artist_of_song);
         songArtistEdit.setLayoutParams(editTextParam);
+        if(song != null) songArtistEdit.setText(song.getArtist());
 
         ImageButton dismissButton = new ImageButton(this);
         dismissButton.setImageResource(R.drawable.ic_dismiss);
@@ -192,7 +210,7 @@ public class EditFavoriteActivity extends AppCompatActivity {
         newRowLayout.addView(songArtistEdit);
         newRowLayout.addView(dismissButton);
         favSongEdit.addView(newRowLayout);
-        addSongRowResult.put(newRowLayout.getId(), "");
+        addSongRowResult.put(newRowLayout.getId(), song);
         TextView validateError = new TextView(this);
         validateError.setText("Song name play by this artist is required");
         validateError.setTextColor(Color.RED);
@@ -221,14 +239,23 @@ public class EditFavoriteActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 validateError.setVisibility(View.GONE);
                 if(songArtistEdit.getText().toString().equals("")){
-                    if(s.toString().equals("")) addSongRowResult.replace(newRowLayout.getId(), "");
-                    else addSongRowResult.replace(newRowLayout.getId(), s.toString() + " - Unknown");
+                    if(s.toString().equals("")) addSongRowResult.replace(newRowLayout.getId(), null);
+                    else {
+                        Song newSong = new Song();
+                        newSong.setTitle(s.toString());
+                        newSong.setArtist("Unknown");
+                        addSongRowResult.replace(newRowLayout.getId(), newSong);
+                    }
                 } else if (s.toString().equals("")){
                     validateError.setVisibility(View.VISIBLE);
-                    addSongRowResult.replace(newRowLayout.getId(), "");
+                    addSongRowResult.replace(newRowLayout.getId(), null);
                 }
-                else addSongRowResult.replace(newRowLayout.getId(), s.toString() + " - " +
-                            songArtistEdit.getText().toString());
+                else {
+                    Song newSong = new Song();
+                    newSong.setTitle(s.toString());
+                    newSong.setArtist(songArtistEdit.getText().toString());
+                    addSongRowResult.replace(newRowLayout.getId(), newSong);
+                }
 
             }
         });
@@ -246,21 +273,28 @@ public class EditFavoriteActivity extends AppCompatActivity {
                   if (songNameEdit.getText().toString().equals("")){
                       if(!s.toString().equals("")){
                           validateError.setVisibility(View.VISIBLE);
-                          addSongRowResult.replace(newRowLayout.getId(), "");
+                          addSongRowResult.replace(newRowLayout.getId(), null);
                       } else {
                           validateError.setVisibility(View.GONE);
-                          addSongRowResult.replace(newRowLayout.getId(), "");
+                          addSongRowResult.replace(newRowLayout.getId(), null);
                       }
                   } else if(s.toString().equals("")){
-                      addSongRowResult.replace(newRowLayout.getId(), songNameEdit.getText().toString() + " - Unknown");
-                  } else addSongRowResult.replace(newRowLayout.getId(),songNameEdit.getText().toString()
-                              + " - " + s.toString());
+                      Song newSong = new Song();
+                      newSong.setTitle(songNameEdit.getText().toString());
+                      newSong.setArtist("Unknown");
+                      addSongRowResult.replace(newRowLayout.getId(), newSong);
+                  } else {
+                      Song newSong = new Song();
+                      newSong.setTitle(songNameEdit.getText().toString());
+                      newSong.setArtist(s.toString());
+                      addSongRowResult.replace(newRowLayout.getId(), newSong);
+                  }
               }
           }
         );
     }
 
-    public void onAddFavArtistEdit(View view) {
+    public void onAddFavArtistEdit(String artist) {
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -283,6 +317,7 @@ public class EditFavoriteActivity extends AppCompatActivity {
         EditText songArtistEdit = new EditText(this);
         songArtistEdit.setHint(R.string.enter_artist_name);
         songArtistEdit.setLayoutParams(editTextParam);
+        if(!artist.equals("")) songArtistEdit.setText(artist);
         ImageButton dismissButton = new ImageButton(this);
         dismissButton.setImageResource(R.drawable.ic_dismiss);
         dismissButton.setBackgroundColor(Color.TRANSPARENT);
@@ -291,7 +326,7 @@ public class EditFavoriteActivity extends AppCompatActivity {
         newRowLayout.addView(dismissButton);
 
         favArtistEdit.addView(newRowLayout);
-        addArtistRowResult.put(newRowLayout.getId(), "");
+        addArtistRowResult.put(newRowLayout.getId(), artist);
         dismissButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -320,8 +355,8 @@ public class EditFavoriteActivity extends AppCompatActivity {
     }
 
     public void update(View v){
-        ArrayList<String> songs = new ArrayList<>(addSongRowResult.values());
-        songs.removeIf(song -> song.equals(""));
+        ArrayList<Song> songs = new ArrayList<>(addSongRowResult.values());
+        songs.removeIf(Objects::isNull);
         ArrayList<String> artists = new ArrayList<>(addArtistRowResult.values());
         artists.removeIf(artist -> artist.equals(""));
         Favorite newFavorite = new Favorite();

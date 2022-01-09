@@ -1,6 +1,8 @@
 package com.example.mshare.models;
 
-public class Song {
+import java.io.Serializable;
+
+public class Song implements Serializable {
 
     private String id, title, url, cover, artist;
 
@@ -30,5 +32,25 @@ public class Song {
 
     public String getUrl() {
         return url;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
     }
 }

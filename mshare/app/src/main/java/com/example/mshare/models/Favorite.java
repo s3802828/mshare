@@ -4,18 +4,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Favorite implements Serializable {
-    private ArrayList<String> songs;
+    private ArrayList<Song> songs;
     private ArrayList<String> artists;
     private ArrayList<Genre> genres;
 
     public Favorite() {
     }
 
-    public ArrayList<String> getSongs() {
+    public ArrayList<Song> getSongs() {
         return songs;
     }
 
-    public void setSongs(ArrayList<String> songs) {
+    public void setSongs(ArrayList<Song> songs) {
         this.songs = songs;
     }
 

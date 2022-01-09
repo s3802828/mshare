@@ -33,4 +33,6 @@
     <string name="enter_artist_name">Enter Artist Name</string>
     <string name="confirm">CONFIRM</string>
     <string name="cancel">CANCEL</string>
+    <string name="view_profile">VIEW PROFILE</string>
+    <string name="play">PLAY</string>
 </resources>

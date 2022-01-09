@@ -37,7 +37,6 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_add"
             android:layout_below="@+id/fav_song_edit"
-            android:onClick="onAddFavSongEdit"
             android:background="@android:color/transparent"/>
         <ImageView
             android:id="@+id/artist_icon"
@@ -70,7 +69,6 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_add"
             android:layout_below="@+id/fav_artist_edit"
-            android:onClick="onAddFavArtistEdit"
             android:background="@android:color/transparent"/>
         <ImageView
             android:id="@+id/genre_icon"

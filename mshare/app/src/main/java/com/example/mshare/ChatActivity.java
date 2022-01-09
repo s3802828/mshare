@@ -7,6 +7,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.example.mshare.models.Message;
 import com.example.mshare.models.NotificationResponse;
 import com.example.mshare.models.Sender;
 import com.example.mshare.models.User;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.example.mshare.utilClasses.Client;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -59,7 +61,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private AppCompatImageView backButton;
     private APIService apiService;
-
+    private Boolean isFromBackGround;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +69,7 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(activityChatBinding.getRoot());
         initialize();
+//        System.out.println(isFromBackGround);
         addRealTimeDocumentChangeListener();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
@@ -80,9 +83,16 @@ public class ChatActivity extends AppCompatActivity {
         receiver = (User) getIntent().getSerializableExtra("User");
         activityChatBinding.userName.setText(receiver.getName());
         Glide.with(ChatActivity.this).load(receiver.getAvatar()).into(activityChatBinding.userAvatar);
-
         backButton = findViewById(R.id.backBtn);
-        backButton.setOnClickListener(v -> onBackPressed());
+        backButton.setOnClickListener(v -> finish());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!ApplicationStatus.isIsApplicationRunning()) {
+            ExitActivity.exitApplication(this);
+        }
     }
 
     public static String convertDateFormat(Date date) {
@@ -275,6 +285,7 @@ public class ChatActivity extends AppCompatActivity {
     protected void onResume() {
         updateUserActive("Active now");
         listenUserActive();
+        System.out.println("Back");
         super.onResume();
     }
 

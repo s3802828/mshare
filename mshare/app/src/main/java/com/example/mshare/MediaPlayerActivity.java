@@ -209,6 +209,9 @@ public class MediaPlayerActivity extends AppCompatActivity {
                         sharingLayout.setVisibility(View.GONE);
                         if(firebaseAuth.getCurrentUser().getUid().equals(guestId)) {
                             finish();
+                            if(!ApplicationStatus.isIsApplicationRunning()) {
+                                ExitActivity.exitApplication(this);
+                            }
                         }
                     }
                 }

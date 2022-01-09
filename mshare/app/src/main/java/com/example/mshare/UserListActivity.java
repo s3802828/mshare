@@ -75,7 +75,7 @@ public class UserListActivity extends AppCompatActivity {
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         assert firebaseUser != null;
         Intent intent = getIntent();
-        //roomId = intent.getExtras().getString("room_id");
+        roomId = intent.getExtras().getString("room_id");
         db.collection("users")
                 .orderBy("onlineStatus", Query.Direction.DESCENDING)
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -102,12 +102,12 @@ public class UserListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
-//        listener1 = db.collection("rooms")
-//                .document(roomId)
-//                .collection("request_response")
-//                .whereEqualTo(FieldPath.documentId(),roomId)
-//                .addSnapshotListener(eventListener)
-//        ;
+        listener1 = db.collection("rooms")
+                .document(roomId)
+                .collection("request_response")
+                .whereEqualTo(FieldPath.documentId(),roomId)
+                .addSnapshotListener(eventListener)
+        ;
 
 
     }

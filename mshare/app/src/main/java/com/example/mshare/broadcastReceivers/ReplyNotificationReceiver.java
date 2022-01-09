@@ -15,6 +15,7 @@ import com.example.mshare.ChatActivity;
 import com.example.mshare.R;
 import com.example.mshare.models.User;
 import com.example.mshare.services.FirebaseNotificationService;
+import com.example.mshare.utilClasses.ApplicationStatus;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -28,16 +29,17 @@ public class ReplyNotificationReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        System.out.println("HELLO");
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(101);
         Bundle bundle = intent.getExtras();
         Boolean noReply = bundle.getBoolean("noReply");
-        System.out.println(noReply);
         if (noReply) {
             Intent chatIntent = new Intent(context, ChatActivity.class);
             chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             chatIntent.putExtra("User", bundle.getSerializable("User"));
+//            if(!ApplicationStatus.isIsApplicationRunning()) {
+//                chatIntent.putExtra("From Background",true);
+//            }
             context.startActivity(chatIntent);
         } else {
             String senderId = bundle.getString("senderId");

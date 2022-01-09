@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndDev/mshare/app/src/main/res/layout/activity_chat.xml" value="0.371875" />
+        <entry key="..\:/AndDev/mshare/app/src/main/res/layout/activity_media_player.xml" value="0.371875" />
+        <entry key="..\:/AndDev/mshare/app/src/main/res/layout/user_list_view.xml" value="0.371875" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/artist_border.xml" value="0.25" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/border.xml" value="0.1" />
         <entry key="..\:/Users/RTA-Laptop/AndroidStudioProjects/MShare/app/src/main/res/drawable/chat_content_bg.xml" value="0.1" />

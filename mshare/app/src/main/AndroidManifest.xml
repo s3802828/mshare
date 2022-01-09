@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.mshare">
+    package="com.example.mshare" >
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -10,7 +10,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MShare">
+        android:theme="@style/Theme.MShare" >
+        <activity
+            android:name=".ExitActivity"
+            android:autoRemoveFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay" />
         <activity
             android:name=".EditFavoriteActivity"
             android:exported="false" />
@@ -50,7 +55,7 @@
         <service
             android:name=".services.FirebaseNotificationService"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -62,7 +67,7 @@
         <activity
             android:name=".LoginActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

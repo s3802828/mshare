@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/conversationList"
+        android:title="@string/chats"
+        android:icon="@drawable/ic_message_dark"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/profilePage"
+        android:title="@string/profile"
+        android:icon="@drawable/ic_user_dark"
+        app:showAsAction="ifRoom" />
+</menu>

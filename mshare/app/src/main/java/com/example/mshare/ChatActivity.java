@@ -184,25 +184,25 @@ public class ChatActivity extends AppCompatActivity {
 
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.tool_bar_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.logout:
-                firebaseAuth.signOut();
-                LoginManager.getInstance().logOut();
-                Intent intent = new Intent(ChatActivity.this, LoginActivity.class);
-                setResult(200, intent);
-                finish();
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.tool_bar_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        switch (item.getItemId()) {
+//            case R.id.logout:
+//                firebaseAuth.signOut();
+//                LoginManager.getInstance().logOut();
+//                Intent intent = new Intent(ChatActivity.this, LoginActivity.class);
+//                setResult(200, intent);
+//                finish();
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
 
 
     private String generateConversationId(String a, String b) {

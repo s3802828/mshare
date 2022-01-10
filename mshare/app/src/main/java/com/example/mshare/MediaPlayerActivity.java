@@ -3,6 +3,8 @@ package com.example.mshare;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuItemCompat;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -14,6 +16,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -52,7 +56,7 @@ import java.util.Objects;
 public class MediaPlayerActivity extends AppCompatActivity {
 
     private SeekBar seekBarDuration;
-    private ImageButton playBtn;
+    private ImageButton playBtn, prevBtn, nextBtn;
     private int position = 0;
     private ArrayList<String> songListId;
     private TextView songTitle;
@@ -107,6 +111,8 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
         songCover = findViewById(R.id.imageCoverMedia);
         playBtn = (ImageButton) findViewById(R.id.imageButton);
+        prevBtn = (ImageButton) findViewById(R.id.imageButtonPrev);
+        nextBtn = (ImageButton) findViewById(R.id.imageButtonNext);
         seekBarDuration = (SeekBar) findViewById(R.id.seekBarDuration);
         txtDuration = (TextView) findViewById(R.id.textViewDuration);
         txtTotalDuration = (TextView) findViewById(R.id.textViewTotalDuration);
@@ -127,6 +133,11 @@ public class MediaPlayerActivity extends AppCompatActivity {
             isSharingMode = true;
             shareButton.setVisibility(View.GONE);
             sharingLayout.setVisibility(View.VISIBLE);
+            playBtn.setVisibility(View.INVISIBLE);
+            seekBarDuration.setVisibility(View.INVISIBLE);
+            prevBtn.setVisibility(View.INVISIBLE);
+            nextBtn.setVisibility(View.INVISIBLE);
+            if(thread != null) thread.interrupt();
         }
 
         listener1 = db.collection("rooms")
@@ -208,6 +219,10 @@ public class MediaPlayerActivity extends AppCompatActivity {
                         isSharingMode = false;
                         shareButton.setVisibility(View.VISIBLE);
                         sharingLayout.setVisibility(View.GONE);
+                        playBtn.setVisibility(View.VISIBLE);
+                        seekBarDuration.setVisibility(View.VISIBLE);
+                        prevBtn.setVisibility(View.VISIBLE);
+                        nextBtn.setVisibility(View.VISIBLE);
                         if(firebaseAuth.getCurrentUser().getUid().equals(guestId)) {
                             finish();
                             if(!ApplicationStatus.isIsApplicationRunning()) {
@@ -234,6 +249,14 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(@NonNull Void unused) {
+                        db.collection("users").document(hostId)
+                                .update("onlineStatus", "Online").addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(@NonNull Void unused) {
+                                db.collection("users").document(guestId)
+                                        .update("onlineStatus", "Online");
+                            }
+                        });
                     }
                 });
     }
@@ -268,6 +291,34 @@ public class MediaPlayerActivity extends AppCompatActivity {
 
             }
         });
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if(ApplicationStatus.isIsApplicationRunning()){
+            getMenuInflater().inflate(R.menu.tool_bar_main, menu);
+            MenuItem searchViewItem = menu.findItem(R.id.searchView);
+            SearchView searchUser = (SearchView) MenuItemCompat.getActionView(searchViewItem);
+            searchUser.setVisibility(View.GONE);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.conversationList:
+                Intent intent = new Intent(MediaPlayerActivity.this, ConversationActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.profilePage:
+                Intent intent1 = new Intent(MediaPlayerActivity.this, ProfileActivity.class);
+                intent1.putExtra("userId", firebaseAuth.getCurrentUser().getUid());
+                startActivity(intent1);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void startMusicPlayer() {
@@ -445,7 +496,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
                 txtTotalDuration.setText(timeCoverter(musicService.getTotalDuration()));
                 songTitle.setText(musicService.getSongTitle());
                 songArtist.setText(musicService.getSongArtist());
-                Glide.with(MediaPlayerActivity.this).load(musicService.getSongCover()).into(songCover);
+                Glide.with(getApplicationContext()).load(musicService.getSongCover()).into(songCover);
                 musicService.setSongChanged();
             }
 
@@ -558,7 +609,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
                     handler.removeCallbacks(thread);
                 }
             });
-        } else{
+        } else {
             listener1.remove();
             listener2.remove();
             listener3.remove();

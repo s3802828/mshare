@@ -17,6 +17,7 @@
         android:overScrollMode="never"
         android:padding="20dp"
         android:visibility="gone"
+        android:layout_marginTop="51dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

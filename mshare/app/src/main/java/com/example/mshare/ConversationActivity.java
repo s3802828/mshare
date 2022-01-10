@@ -4,9 +4,13 @@ import static com.example.mshare.ChatActivity.convertDateFormat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuItemCompat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 
@@ -113,6 +117,28 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
 
         }
     };
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.tool_bar_main_dark, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.conversationList:
+                Intent intent = new Intent(ConversationActivity.this, ConversationActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.profilePage:
+                Intent intent1 = new Intent(ConversationActivity.this, ProfileActivity.class);
+                intent1.putExtra("userId", firebaseAuth.getCurrentUser().getUid());
+                startActivity(intent1);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 
     private void addListenToConversation() {

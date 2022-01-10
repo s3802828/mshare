@@ -231,13 +231,16 @@ public class UserListActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.logout:
-                firebaseAuth.signOut();
-                LoginManager.getInstance().logOut();
-                Intent intent = new Intent(UserListActivity.this, LoginActivity.class);
-                setResult(200, intent);
-                finish();
+        switch (item.getItemId()){
+            case R.id.conversationList:
+                Intent intent = new Intent(UserListActivity.this, ConversationActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.profilePage:
+                Intent intent1 = new Intent(UserListActivity.this, ProfileActivity.class);
+                intent1.putExtra("userId", firebaseAuth.getCurrentUser().getUid());
+                startActivity(intent1);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

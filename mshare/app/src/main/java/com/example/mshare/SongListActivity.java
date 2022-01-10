@@ -13,6 +13,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -176,6 +177,14 @@ public class SongListActivity extends AppCompatActivity {
         }
 
     }
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            return false;
+        }
+        return super.dispatchKeyEvent(event);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -183,7 +192,7 @@ public class SongListActivity extends AppCompatActivity {
         MenuItem searchViewItem = menu.findItem(R.id.searchView);
         searchSong = (SearchView) MenuItemCompat.getActionView(searchViewItem);
 
-        searchSong.setQueryHint("Enter song name...");
+        searchSong.setQueryHint("Enter Song Name...");
         searchSong.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -221,11 +230,4 @@ public class SongListActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if(requestCode ==500 && resultCode ==500){
-//            System.out.println("final back");
-//        }
-//    }
 }

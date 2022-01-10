@@ -51,7 +51,7 @@ public class RequestNotificationReceiver extends BroadcastReceiver {
                         boolean isAccept = bundle.getBoolean("accept");
                         if(isAccept) {
                             Intent intent1 = new Intent(context, MediaPlayerActivity.class);
-                            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent1.putExtra("isSharingMode", true);
                             intent1.putExtra("room_id", roomId);
                             context.startActivity(intent1);

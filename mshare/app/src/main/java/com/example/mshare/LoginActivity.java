@@ -1,6 +1,7 @@
 package com.example.mshare;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.media.session.MediaSession;
 import android.os.Bundle;
@@ -209,6 +210,10 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
     private void goToMain(){
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Logging in....");
+        progressDialog.show();
         db.collection("tokens")
                 .whereEqualTo(FieldPath.documentId(), mFirebaseAuth.getCurrentUser().getUid())
                 .addSnapshotListener(eventListener);
@@ -251,6 +256,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
                                                         public void onSuccess(@NonNull Void unused) {
+                                                            progressDialog.cancel();
                                                             startActivity(intent);
                                                         }
                                                     });
@@ -269,6 +275,7 @@ public class LoginActivity extends AppCompatActivity {
                                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                 @Override
                                                                 public void onSuccess(@NonNull Void unused) {
+                                                                    progressDialog.cancel();
                                                                     startActivity(intent);
                                                                 }
                                                             });

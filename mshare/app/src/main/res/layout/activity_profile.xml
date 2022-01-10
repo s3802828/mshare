@@ -21,22 +21,39 @@
             app:layout_constraintTop_toTopOf="parent"
             android:visibility="invisible"/>
 
-        <ImageView
-            android:id="@+id/avatar"
-            android:layout_width="@dimen/com_facebook_profilepictureview_preset_size_normal"
-            android:layout_height="@dimen/com_facebook_profilepictureview_preset_size_normal"
-            android:layout_marginEnd="10dp"
-            android:layout_marginVertical="15dp"
-            android:layout_below="@+id/searchViewGone"
-            android:background="@color/white"
-            android:padding="5dp"
-            tools:srcCompat="@tools:sample/avatars" />
+        <RelativeLayout
+            android:id="@+id/avatarGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/searchViewGone">
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="@dimen/com_facebook_profilepictureview_preset_size_normal"
+                android:layout_height="@dimen/com_facebook_profilepictureview_preset_size_normal"
+                android:layout_marginEnd="10dp"
+                android:layout_marginVertical="15dp"
+                android:background="@color/white"
+                android:padding="5dp"
+                tools:srcCompat="@tools:sample/avatars" />
+
+            <ImageButton
+                android:id="@+id/editAvatar_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/avatar"
+                android:layout_centerHorizontal="true"
+                android:background="@android:color/transparent"
+                android:onClick="onEditAvatar"
+                app:srcCompat="@drawable/ic_edit_avatar" />
+
+        </RelativeLayout>
+
 
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/searchViewGone"
-            android:layout_toEndOf="@+id/avatar">
+            android:layout_toEndOf="@+id/avatarGroup">
 
             <ImageView
                 android:id="@+id/nameIcon"
@@ -168,7 +185,7 @@
                 android:layout_toEndOf="@+id/favorite"
                 android:onClick="showFav"
                 android:background="@android:color/transparent"
-                app:srcCompat="@drawable/ic_down"/>
+                app:srcCompat="@drawable/ic_up"/>
             <ImageButton
                 android:id="@+id/editFav_btn"
                 android:layout_width="wrap_content"
@@ -186,7 +203,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/fav_icon"
                 android:layout_marginHorizontal="20dp"
-                android:visibility="gone">
+                android:visibility="visible">
 
                 <ImageView
                     android:id="@+id/fav_song_icon"
@@ -212,7 +229,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_below="@id/fav_song"
-                    android:visibility="gone"/>
+                    android:visibility="visible"/>
 
                 <ImageButton
                     android:id="@+id/showSong_btn"
@@ -223,7 +240,7 @@
                     android:layout_toEndOf="@+id/fav_song"
                     android:background="@android:color/transparent"
                     android:onClick="showSong"
-                    app:srcCompat="@drawable/ic_down" />
+                    app:srcCompat="@drawable/ic_up" />
 
                 <ImageView
                     android:id="@+id/artist_icon"
@@ -256,14 +273,14 @@
                     android:layout_toEndOf="@+id/artist"
                     android:background="@android:color/transparent"
                     android:onClick="showArtist"
-                    app:srcCompat="@drawable/ic_down" />
+                    app:srcCompat="@drawable/ic_up" />
                 <LinearLayout
                     android:id="@+id/fav_artist_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_below="@id/artist"
-                    android:visibility="gone"/>
+                    android:visibility="visible"/>
 
                 <ImageView
                     android:id="@+id/genre_icon"
@@ -296,14 +313,14 @@
                     android:layout_toEndOf="@+id/genre"
                     android:background="@android:color/transparent"
                     android:onClick="showGenre"
-                    app:srcCompat="@drawable/ic_down" />
+                    app:srcCompat="@drawable/ic_up" />
                 <LinearLayout
                     android:id="@+id/fav_genre_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_below="@id/genre"
-                    android:visibility="gone"/>
+                    android:visibility="visible"/>
 
             </RelativeLayout>
 
@@ -327,12 +344,41 @@
                 android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
+            <ImageButton
+                android:id="@+id/showUpload_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/fav_group"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/upload"
+                android:background="@android:color/transparent"
+                android:onClick="showUpload"
+                app:srcCompat="@drawable/ic_down" />
+            <ImageButton
+                android:id="@+id/addSong_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/fav_group"
+                android:layout_marginVertical="15dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@+id/showUpload_btn"
+                android:background="@android:color/transparent"
+                android:onClick="addSong"
+                app:srcCompat="@drawable/ic_add" />
+            <LinearLayout
+                android:id="@+id/upload_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_below="@id/upload"
+                android:visibility="gone"/>
 
             <android.widget.Button
                 android:id="@+id/logout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/upload"
+                android:layout_below="@id/upload_group"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/red_border"
                 android:onClick="onLogout"

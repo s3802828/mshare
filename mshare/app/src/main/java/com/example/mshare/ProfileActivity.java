@@ -2,57 +2,83 @@ package com.example.mshare;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mshare.models.Favorite;
 import com.example.mshare.models.Genre;
 import com.example.mshare.models.Song;
 import com.example.mshare.models.Tokens;
+import com.example.mshare.models.User;
 import com.example.mshare.utilClasses.ApplicationStatus;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.util.Hex;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.google.protobuf.Internal;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
     protected FirebaseFirestore db = FirebaseFirestore.getInstance();
     protected FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    protected FirebaseStorage storage = FirebaseStorage.getInstance("gs://androiddev-cbbc9.appspot.com/");
     private ImageView avatarView;
     private TextView userNameView, userEmailView;
     private Favorite favorite;
-    private LinearLayout favSongLayout, favArtistLayout, favGenreLayout;
+    private LinearLayout favSongLayout, favArtistLayout, favGenreLayout, uploadSongLayout;
     private EditText nameInput;
     private String userId;
+    private File[] files;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +92,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         ImageButton editName = findViewById(R.id.editName_btn);
         ImageButton editFav = findViewById(R.id.editFav_btn);
+        ImageButton addSong = findViewById(R.id.addSong_btn);
         Button logout = findViewById(R.id.logout);
         Intent intent = getIntent();
         userId = intent.getExtras().getString("userId");
@@ -73,6 +100,7 @@ public class ProfileActivity extends AppCompatActivity {
             editName.setVisibility(View.GONE);
             editFav.setVisibility(View.GONE);
             logout.setVisibility(View.GONE);
+            addSong.setVisibility(View.GONE);
         }
         db.collection("users").document(userId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -93,9 +121,11 @@ public class ProfileActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
+
         favArtistLayout = findViewById(R.id.fav_artist_group);
         favSongLayout = findViewById(R.id.fav_song_group);
         favGenreLayout = findViewById(R.id.fav_genre_group);
+        uploadSongLayout = findViewById(R.id.upload_group);
 
     }
 
@@ -105,6 +135,7 @@ public class ProfileActivity extends AppCompatActivity {
         favArtistLayout.removeAllViews();
         favSongLayout.removeAllViews();
         favGenreLayout.removeAllViews();
+        uploadSongLayout.removeAllViews();
         db.collection("favorites").document(userId)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -192,6 +223,30 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+        db.collection("songs")
+                    .whereEqualTo("uploader_id", firebaseAuth.getCurrentUser().getUid())
+                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(@NonNull QuerySnapshot queryDocumentSnapshots) {
+                LinearLayout.LayoutParams songLayoutParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                for (DocumentSnapshot ds: queryDocumentSnapshots.getDocuments()) {
+                    TextView newView = new TextView(ProfileActivity.this);
+                    newView.setText(ds.getString("title") +" - " + ds.getString("artist"));
+                    newView.setPadding(10, 10, 10, 10);
+                    newView.setTextColor(Color.BLACK);
+                    newView.setTextSize(16);
+                    newView.setGravity(Gravity.CENTER);
+                    newView.setBackgroundResource(R.drawable.genre_border);
+                    newView.setLayoutParams(songLayoutParams);
+                    uploadSongLayout.addView(newView);
+                }
+            }
+        });
+
     }
     @SuppressLint("SetTextI18n")
     public void onEditName(View v){
@@ -260,9 +315,7 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
-    private void updateUserStatus() {
 
-    }
     public void editFav(View v){
         Intent intent = new Intent(this, EditFavoriteActivity.class);
         intent.putExtra("favorites", favorite);
@@ -311,6 +364,131 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             favGenreLayout.setVisibility(View.GONE);
             showButton.setImageResource(R.drawable.ic_down);
+        }
+    }
+    public void showUpload(View view){
+        ImageButton showButton = findViewById(R.id.showUpload_btn);
+        if(uploadSongLayout.getVisibility() == View.GONE){
+            uploadSongLayout.setVisibility(View.VISIBLE);
+            showButton.setImageResource(R.drawable.ic_up);
+        } else {
+            uploadSongLayout.setVisibility(View.GONE);
+            showButton.setImageResource(R.drawable.ic_down);
+        }
+    }
+
+    public void onEditAvatar(View view) {
+        ArrayList<String> imagePath = new ArrayList<>();
+        ArrayList<String> imageName = new ArrayList<>();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("CHOOSE IMAGES (FROM YOUR DEVICE STORAGE)")
+                .setPositiveButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        File imageFolder = new File("sdcard/Pictures");
+        files = new File[0];
+
+        if (imageFolder.exists()){
+            files = imageFolder.listFiles();
+            if (files == null) {
+                builder.setMessage("There currently no images in device storage");
+            } else {
+                for (File file:files){
+//                    if (file == files[files.length-1]) {
+//                        continue;
+//                    } else {
+                        imagePath.add(file.getAbsolutePath());
+                        imageName.add(file.getName());
+ //                   }
+                }
+                AvatarListAdapter adapter = new AvatarListAdapter(getApplicationContext(), imagePath);
+                builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        ProgressDialog progressDialog = new ProgressDialog(ProfileActivity.this);
+                        progressDialog.setCancelable(false);
+                        progressDialog.setMessage("Updating your avatar.....");
+                        long bytes = files[which].length();
+                        Uri fileUri = Uri.fromFile(files[which]);
+
+                        String[] data = imageName.get(which).split("\\.");
+
+                        if (!(data[data.length-1].equalsIgnoreCase("jpg")) && !(data[data.length-1].equalsIgnoreCase("png")) && !(data[data.length-1].equalsIgnoreCase("jpeg"))) {
+                            Toast.makeText(ProfileActivity.this, "Must be an image file", Toast.LENGTH_SHORT).show();
+                        } else if (bytes > (2 * 1024 * 1024)) {
+                            Toast.makeText(ProfileActivity.this, "Image file size must be smaller than 2MB", Toast.LENGTH_SHORT).show();
+                        } else {
+                            StorageReference storageRef = storage.getReference();
+                            StorageReference riversRef = storageRef.child("avatar/"+fileUri.getLastPathSegment());
+                            UploadTask uploadTask = riversRef.putFile(fileUri);
+
+                            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                @Override
+                                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                    if (!task.isSuccessful()) {
+                                        throw task.getException();
+                                    }
+                                    progressDialog.show();
+                                    // Continue with the task to get the download URL
+                                    return riversRef.getDownloadUrl();
+                                }
+                            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Uri> task) {
+                                    if(task.isSuccessful()){
+                                        Uri downloadUri = task.getResult();
+                                        db.collection("users").document(firebaseAuth.getCurrentUser().getUid())
+                                                .update("avatar", downloadUri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(@NonNull Void unused) {
+                                                if(progressDialog.isShowing()) progressDialog.dismiss();
+                                                Glide.with(ProfileActivity.this).load(downloadUri.toString()).into(avatarView);
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+        builder.create().show();
+
+    }
+
+    public void addSong(View view) {
+        Intent intent = new Intent(ProfileActivity.this, AddSongActivity.class);
+        startActivity(intent);
+    }
+
+
+    private class AvatarListAdapter extends ArrayAdapter<String> {
+        private final Context context;
+        private ArrayList<String> avatars;
+
+        public AvatarListAdapter(@NonNull Context context, @NonNull List<String> objects) {
+            super(context, -1, objects);
+            this.context = context;
+            this.avatars = (ArrayList<String>) objects;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            @SuppressLint("ViewHolder") View rowLayout = inflater.inflate(R.layout.avatar_list_view, parent, false);
+            ImageView avatarView = rowLayout.findViewById(R.id.editAvatar);
+            Bitmap imageBitmap = BitmapFactory.decodeFile(avatars.get(position));
+            avatarView.setImageBitmap(imageBitmap);
+            return rowLayout;
         }
     }
 }

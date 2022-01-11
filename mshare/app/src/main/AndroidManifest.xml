@@ -14,8 +14,7 @@
         <activity
             android:name=".ExitActivity"
             android:autoRemoveFromRecents="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.NoDisplay" />
+            android:exported="false" />
         <activity
             android:name=".EditFavoriteActivity"
             android:exported="false" />

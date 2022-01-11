@@ -152,6 +152,7 @@ public class MediaPlayerActivity extends AppCompatActivity {
         if (value != null) {
             for (DocumentChange documentChange : value.getDocumentChanges()) {
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    System.out.println("MODIFIED");
                     int currentSong = Integer.parseInt(Objects.requireNonNull(documentChange.getDocument().getString("current_song")));
                     String currentDuration = documentChange.getDocument().getString("current_duration");
                     try {
@@ -580,4 +581,11 @@ public class MediaPlayerActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
+    }
+
 }

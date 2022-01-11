@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.RemoteInput;
@@ -16,7 +17,11 @@ import com.example.mshare.R;
 import com.example.mshare.models.User;
 import com.example.mshare.services.FirebaseNotificationService;
 import com.example.mshare.utilClasses.ApplicationStatus;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Date;
@@ -44,6 +49,7 @@ public class ReplyNotificationReceiver extends BroadcastReceiver {
         } else {
             String senderId = bundle.getString("senderId");
             String receiverId = bundle.getString("receiverId");
+            String senderAvatar = bundle.getString("senderAvatar");
             Bundle results = RemoteInput.getResultsFromIntent(intent);
             if (results != null) {
                 CharSequence quickReplyResult = results.getCharSequence("key_reply");
@@ -66,17 +72,25 @@ public class ReplyNotificationReceiver extends BroadcastReceiver {
                         .collection("messages").add(message);
 
                 //update the last message fields in Conversation Collection
-                HashMap<String, Object> lastMessage = new HashMap<>();
-                lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
-                lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
-                lastMessage.put("lastMessage_receiverId", receiverId);
-                lastMessage.put("lastMessage_receiverName", receiverName);
-                lastMessage.put("lastMessage", content);
-                lastMessage.put("timestamp", new Date());
-                lastMessage.put("lastMessage_receiverAvatar",
-                        "https://firebasestorage.googleapis.com/v0/b/androiddev-cbbc9.appspot.com/o/linux-avatar-by-qubodup-just-a-normal-tux-penguin-Z4TPDs-clipart.png?alt=media&token=4808957a-e786-4f03-b8c1-800d50d93b7d");
-                db.collection("conversation").document(conversationId).set(lastMessage);
-//                notificationManager.cancelAll();
+                db.collection("users")
+                        .document(firebaseAuth.getCurrentUser().getUid())
+                        .get()
+                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                            @Override
+                            public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                                String userAvatar = documentSnapshot.getString("avatar");
+                                HashMap<String, Object> lastMessage = new HashMap<>();
+                                lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
+                                lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
+                                lastMessage.put("lastMessage_receiverId", receiverId);
+                                lastMessage.put("lastMessage_receiverName", receiverName);
+                                lastMessage.put("lastMessage", content);
+                                lastMessage.put("timestamp", new Date());
+                                lastMessage.put("lastMessage_receiverAvatar", senderAvatar);
+                                lastMessage.put("lastMessage_senderAvatar",userAvatar);
+                                db.collection("conversation").document(conversationId).set(lastMessage);
+                            }
+                        });
                 notificationManager.notify(101, new NotificationCompat.Builder(context,
                         "message_notification")
                         .setSmallIcon(R.drawable.ic_launcher_foreground)

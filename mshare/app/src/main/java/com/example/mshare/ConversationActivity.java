@@ -78,14 +78,16 @@ public class ConversationActivity extends AppCompatActivity implements Conversat
                     String receiverId = documentChange.getDocument().getString("lastMessage_receiverId");
                     message.senderId = senderId;
                     message.receiverId = receiverId;
-                    message.conversationAvatar = documentChange.getDocument().getString("lastMessage_receiverAvatar");
                     if (firebaseAuth.getUid().equals(senderId)) {
                         message.content = "You: " + documentChange.getDocument().getString("lastMessage");
                         message.conversationName = documentChange.getDocument().getString("lastMessage_receiverName");
+                        message.conversationAvatar = documentChange.getDocument().getString("lastMessage_receiverAvatar");
 
                     } else if (firebaseAuth.getUid().equals(receiverId)) {
                         message.content = documentChange.getDocument().getString("lastMessage");
                         message.conversationName = documentChange.getDocument().getString("lastMessage_senderName");
+                        message.conversationAvatar = documentChange.getDocument().getString("lastMessage_senderAvatar");
+
                     }
                     message.date = documentChange.getDocument().getDate("timestamp");
                     conversationList.add(message);

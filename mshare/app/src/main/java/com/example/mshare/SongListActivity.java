@@ -140,6 +140,7 @@ public class SongListActivity extends AppCompatActivity {
 
             HashMap<String, Boolean> pause = new HashMap<>();
             pause.put("isPause", false);
+            String roomId = firebaseAuth.getCurrentUser().getUid();
 
 
             Toast.makeText(SongListActivity.this, "Setting up media player...", Toast.LENGTH_SHORT).show();

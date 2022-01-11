@@ -126,7 +126,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
         }
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String senderId = remoteMessage.getData().get("senderId");
-
+        String senderAvatar = remoteMessage.getData().get("senderAvatar");
         //intent without reply
         Intent intent = new Intent(this, ReplyNotificationReceiver.class);
         intent.putExtra("noReply",true);
@@ -145,6 +145,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         String senderName = documentSnapshot.getString("name");
                         User user = new User();
                         user.setId(senderId);
+                        user.setAvatar(senderAvatar);
                         String body = remoteMessage.getData().get("body");
                         user.setName(senderName);
                         intent.putExtra("User", user);
@@ -152,6 +153,7 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                         replyIntent.putExtra("senderId", remoteMessage.getData().get("receiverId"));
                         replyIntent.putExtra("receiverId", remoteMessage.getData().get("senderId"));
                         replyIntent.putExtra("receiverName", senderName);
+                        replyIntent.putExtra("senderAvatar", senderAvatar);
 
                         PendingIntent pendingIntent = PendingIntent
                                 .getBroadcast(FirebaseNotificationService.this, 300, intent,PendingIntent.FLAG_UPDATE_CURRENT);

@@ -62,7 +62,6 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private AppCompatImageView backButton;
     private APIService apiService;
-    private Boolean isFromBackGround;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +69,6 @@ public class ChatActivity extends AppCompatActivity {
         activityChatBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(activityChatBinding.getRoot());
         initialize();
-//        System.out.println(isFromBackGround);
         addRealTimeDocumentChangeListener();
         activityChatBinding.sendMessageBtn.setOnClickListener(v -> sendMessage());
     }
@@ -118,18 +116,28 @@ public class ChatActivity extends AppCompatActivity {
             activityChatBinding.messageContent.setText(null);
 
             //update the last message fields in Conversation Collection
-            HashMap<String, Object> lastMessage = new HashMap<>();
-            lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
-            lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
-            lastMessage.put("lastMessage_receiverId", receiver.getId());
-            lastMessage.put("lastMessage_receiverName", receiver.getName());
-            lastMessage.put("lastMessage", content);
-            lastMessage.put("timestamp", new Date());
-            lastMessage.put("lastMessage_receiverAvatar", receiver.getAvatar());
-            documentReference.set(lastMessage);
+            database.collection("users")
+                    .document(firebaseAuth.getCurrentUser().getUid())
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                            String userAvatar = documentSnapshot.getString("avatar");
+                            HashMap<String, Object> lastMessage = new HashMap<>();
+                            lastMessage.put("lastMessage_senderId", firebaseAuth.getUid());
+                            lastMessage.put("lastMessage_senderName", firebaseAuth.getCurrentUser().getDisplayName());
+                            lastMessage.put("lastMessage_receiverId", receiver.getId());
+                            lastMessage.put("lastMessage_receiverName", receiver.getName());
+                            lastMessage.put("lastMessage", content);
+                            lastMessage.put("timestamp", new Date());
+                            lastMessage.put("lastMessage_senderAvatar", userAvatar);
+                            lastMessage.put("lastMessage_receiverAvatar", receiver.getAvatar());
+                            documentReference.set(lastMessage);
+                        }
+                    });
+            //send notification
+            sendMessageRequestNotification(receiver, content);
         }
-        //send notification
-        sendMessageRequestNotification(receiver, content);
     }
 
     //Handle real time document change during Chat
@@ -183,26 +191,25 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.tool_bar_main, menu);
+        return true;
+    }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.tool_bar_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.logout:
-//                firebaseAuth.signOut();
-//                LoginManager.getInstance().logOut();
-//                Intent intent = new Intent(ChatActivity.this, LoginActivity.class);
-//                setResult(200, intent);
-//                finish();
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logout:
+                firebaseAuth.signOut();
+                LoginManager.getInstance().logOut();
+                Intent intent = new Intent(ChatActivity.this, LoginActivity.class);
+                setResult(200, intent);
+                finish();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 
     private String generateConversationId(String a, String b) {
@@ -235,51 +242,62 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void sendMessageRequestNotification(User receiver, String content) {
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         database.collection("users").document(receiver.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                String active = task.getResult().getString("active");
-                if (active.equals("Active now")) {
-                    return;
-                }
                 database.collection("tokens").document(receiver.getId()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+
                     @Override
                     public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
                         Tokens tokens = documentSnapshot.toObject(Tokens.class);
                         for (String token : tokens.getNames()) {
-                            assert currentUser != null;
-                            Data data = new Data(currentUser.getUid(), null, content, receiver.getName(), receiver.getId());
-                            Sender sender = new Sender(data, token);
-                            apiService.sendNotification(sender)
-                                    .enqueue(new Callback<NotificationResponse>() {
+                            String active = task.getResult().getString("active");
+                            if (active.equals("Active now")) {
+                                return;
+                            }
+                            database.collection("users").document(firebaseAuth.getCurrentUser().getUid())
+                                    .get()
+                                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                         @Override
-                                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
-                                            if (response.code() == 200) {
-                                                assert response.body() != null;
-                                                if (response.body().getSuccess() != 1) {
-                                                    Toast.makeText(ChatActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        }
+                                        public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                                            String userAvatar = documentSnapshot.getString("avatar");
+                                            System.out.println(userAvatar);
+                                            Data data = new Data(firebaseAuth.getCurrentUser().getUid(), userAvatar, content, receiver.getName(), receiver.getId());
+                                            Sender sender = new Sender(data, token);
+                                            apiService.sendNotification(sender)
+                                                    .enqueue(new Callback<NotificationResponse>() {
+                                                        @Override
+                                                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                                                            if (response.code() == 200) {
+                                                                assert response.body() != null;
+                                                                if (response.body().getSuccess() != 1) {
+                                                                    Toast.makeText(ChatActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        }
 
-                                        @Override
-                                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
+                                                        @Override
+                                                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
 
+                                                        }
+                                                    });
                                         }
                                     });
                         }
+
+                    }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
                     }
                 });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                e.printStackTrace();
+
             }
         });
 
     }
+
 
     @Override
     protected void onPause() {
